@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Device Motion Test</title>
+  <style>
+    body {
+      text-align: center;
+      margin-top: 50px;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Device Motion Permission Test</h1>
+  <p id="status">Status: Not requested</p>
+  <button id="requestBtn">Request Device Motion Permission</button>
+  <p>After granting permission, shake your device to trigger an alert.</p>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const requestBtn = document.getElementById("requestBtn");
+
+    function handleMotion(event) {
+      const acc = event.accelerationIncludingGravity;
+      if (!acc) return;
+      // Adjust threshold as needed
+      const threshold = 15;
+      if (
+        Math.abs(acc.x) > threshold ||
+        Math.abs(acc.y) > threshold ||
+        Math.abs(acc.z) > threshold
+      ) {
+        alert("Shake detected!");
+      }
+    }
+
+    async function requestMotionPermission() {
+      // Check if the API requires permission (iOS 13+)
+      if (
+        typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+      ) {
+        try {
+          const response = await DeviceMotionEvent.requestPermission();
+          console.log("Permission response:", response);
+          if (response === "granted") {
+            statusEl.textContent = "Status: Permission granted";
+            window.addEventListener("devicemotion", handleMotion);
+          } else {
+            statusEl.textContent = "Status: Permission denied";
+            alert("Permission denied. If you've previously denied permission, please clear your site data in Safari settings.");
+          }
+        } catch (err) {
+          console.error("Error requesting permission:", err);
+          statusEl.textContent = "Status: Error";
+        }
+      } else {
+        // For browsers that don't require permission
+        statusEl.textContent = "Status: Permission not required";
+        window.addEventListener("devicemotion", handleMotion);
+      }
+    }
+
+    requestBtn.addEventListener("click", requestMotionPermission);
+  </script>
+</body>
+</html>
