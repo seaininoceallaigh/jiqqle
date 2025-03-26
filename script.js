@@ -2,7 +2,7 @@ const preloaderEl = document.querySelector(".loader-container");
 const firstWordArr = ["Don't", "know", "what", "to", "do?"];
 const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
-let hasChosen = false; // flag to ensure only one random fire
+let hasChosen = false; // ensure only one trigger
 
 function displayLetter(letter, container) {
   counter++;
@@ -75,17 +75,22 @@ async function requestMotionPermission() {
 }
 
 function afterPermissionGranted() {
-  // Hide choices inputs and buttons
+  // Hide initial instructions and choices
+  document.getElementById('choice-instructions').style.display = 'none';
   document.getElementById('choices-container').style.display = 'none';
   document.getElementById('add-choice').style.display = 'none';
   document.getElementById('request-motion').style.display = 'none';
-  // The heading already reads "Jiggle your phone" with a jiggle effect.
-  // Listen for device motion
+  
+  // Immediately show jiggle header and simulation button
+  document.getElementById('jiggle-heading').style.display = 'block';
+  document.getElementById('simulate-jiggle').style.display = 'block';
+  
+  // Listen for device motion (if available)
   window.addEventListener("devicemotion", handleMotion);
 }
 
 function handleMotion(event) {
-  if (hasChosen) return; // Only allow one trigger
+  if (hasChosen) return; // Only one trigger allowed
   const acc = event.accelerationIncludingGravity;
   if (!acc) return;
   const threshold = 15;
@@ -94,13 +99,21 @@ function handleMotion(event) {
     Math.abs(acc.y) > threshold ||
     Math.abs(acc.z) > threshold
   ) {
-    hasChosen = true;
-    // Remove jiggle effect from heading
-    document.getElementById('section-heading').classList.remove('jiggle-effect');
-    chooseRandom();
-    // Remove the listener so it fires only once
-    window.removeEventListener("devicemotion", handleMotion);
+    triggerChoice();
   }
+}
+
+document.getElementById('simulate-jiggle').addEventListener('click', () => {
+  if (!hasChosen) triggerChoice();
+});
+
+function triggerChoice() {
+  hasChosen = true;
+  // Stop jiggle effect by removing the jiggle-effect class
+  document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
+  chooseRandom();
+  // Remove the devicemotion listener to prevent further triggers
+  window.removeEventListener("devicemotion", handleMotion);
 }
 
 function chooseRandom() {
