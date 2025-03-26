@@ -1,0 +1,90 @@
+/* Global & Mobile Centering */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Helvetica, sans-serif;
+  text-align: center;
+  background-color: black;
+  color: white;
+}
+
+/* Preloader styling */
+.preloader {
+  position: fixed;
+  background-color: black;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader-container {
+  display: block;
+}
+
+.loading {
+  display: inline-flex;
+  animation: return 3s ease;
+  padding: 0.25em;
+}
+
+.large {
+  font-size: 2rem;
+}
+
+@keyframes return {
+  0% { transform: translate(var(--X), var(--Y)); opacity: 1; }
+  25% { opacity: 0.7; }
+  35% { transform: translate(0,0); }
+}
+
+/* Fade-in effect */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 2s ease forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* Choices Section */
+#choices-section {
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#choices-container {
+  width: 90%;
+  max-width: 400px;
+  margin: 20px 0;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.choice input[type="text"],
+.choice input[type="file"] {
+  margin: 5px 0;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 5px;
+}
+
+/* Result */
+#result {
+  margin-top: 20px;
+}
