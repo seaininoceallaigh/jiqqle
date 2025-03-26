@@ -2,6 +2,7 @@ const preloaderEl = document.querySelector(".loader-container");
 const firstWordArr = ["Don't", "know", "what", "to", "do?"];
 const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
+let hasChosen = false; // flag to ensure only one random fire
 
 function displayLetter(letter, container) {
   counter++;
@@ -34,7 +35,7 @@ function displayLoader() {
 
 displayLoader();
 
-// Add More Choice
+// Add More Choice button
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -49,7 +50,7 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-// Request Device Motion Permission
+// Request Device Motion Permission when "Next" is clicked
 document.getElementById('request-motion').addEventListener('click', requestMotionPermission);
 
 async function requestMotionPermission() {
@@ -74,16 +75,17 @@ async function requestMotionPermission() {
 }
 
 function afterPermissionGranted() {
-  // Hide choices and update heading
+  // Hide choices inputs and buttons
   document.getElementById('choices-container').style.display = 'none';
   document.getElementById('add-choice').style.display = 'none';
   document.getElementById('request-motion').style.display = 'none';
-  document.getElementById('section-heading').textContent = 'Jiggle your phone';
+  // The heading already reads "Jiggle your phone" with a jiggle effect.
   // Listen for device motion
   window.addEventListener("devicemotion", handleMotion);
 }
 
 function handleMotion(event) {
+  if (hasChosen) return; // Only allow one trigger
   const acc = event.accelerationIncludingGravity;
   if (!acc) return;
   const threshold = 15;
@@ -92,9 +94,12 @@ function handleMotion(event) {
     Math.abs(acc.y) > threshold ||
     Math.abs(acc.z) > threshold
   ) {
-    // Remove listener temporarily to prevent rapid firing
-    window.removeEventListener("devicemotion", handleMotion);
+    hasChosen = true;
+    // Remove jiggle effect from heading
+    document.getElementById('section-heading').classList.remove('jiggle-effect');
     chooseRandom();
+    // Remove the listener so it fires only once
+    window.removeEventListener("devicemotion", handleMotion);
   }
 }
 
@@ -116,8 +121,4 @@ function chooseRandom() {
   } else {
     resultEl.textContent = "No valid input in chosen option.";
   }
-  // Re-add listener after showing result
-  setTimeout(() => {
-    window.addEventListener("devicemotion", handleMotion);
-  }, 1000);
 }
