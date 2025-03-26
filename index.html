@@ -14,8 +14,8 @@
 
   <!-- Choices Section -->
   <div id="choices-section" style="display:none;">
-    <!-- Initially displays "Jiggle your phone" with a jiggle effect -->
-    <h2 id="section-heading" class="fade-in jiggle-effect">Jiggle your phone</h2>
+    <!-- Initial instructions header -->
+    <h2 id="choice-instructions">Enter 2 or more choices</h2>
     <div id="choices-container">
       <div class="choice">
         <input type="text" placeholder="Enter text">
@@ -27,8 +27,12 @@
       </div>
     </div>
     <button id="add-choice">Add More Choice</button>
-    <!-- "Next" button now used to request motion permission -->
     <button id="request-motion">Next</button>
+    
+    <!-- Jiggle header & simulate button (hidden initially) -->
+    <h2 id="jiggle-heading" class="jiggle-effect" style="display:none;">Jiggle your phone</h2>
+    <button id="simulate-jiggle" style="display:none;">Simulate Jiggle</button>
+    
     <div id="result"></div>
   </div>
 
