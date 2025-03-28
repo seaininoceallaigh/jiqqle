@@ -2,9 +2,9 @@ const preloaderEl = document.querySelector(".loader-container");
 const firstWordArr = ["Don't", "know", "what", "to", "do?"];
 const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
-let hasChosen = false; // ensure only one trigger
+let hasChosen = false;
 
-// Global variable to store the user choices (DOM elements)
+// Store input data instead of DOM elements
 let savedChoices = [];
 
 function displayLetter(letter, container) {
@@ -38,7 +38,6 @@ function displayLoader() {
 
 displayLoader();
 
-// Add More Choice button
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -53,25 +52,20 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-// Request Device Motion Permission when "Next" is clicked
 document.getElementById('request-motion').addEventListener('click', requestMotionPermission);
 
 async function requestMotionPermission() {
-  if (
-    typeof DeviceMotionEvent !== "undefined" &&
-    typeof DeviceMotionEvent.requestPermission === "function"
-  ) {
+  if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
     try {
       const response = await DeviceMotionEvent.requestPermission();
       if (response === "granted") {
         afterPermissionGranted();
-        // Attempt to remove focus from any active element
-        if(document.activeElement) document.activeElement.blur();
+        document.activeElement?.blur();
       } else {
-        alert("Permission denied. Please enable device motion in your settings.");
+        alert("Permission denied. Please enable device motion.");
       }
     } catch (err) {
-      console.error("Error requesting permission:", err);
+      console.error("Error:", err);
       alert("Error requesting permission.");
     }
   } else {
@@ -80,34 +74,39 @@ async function requestMotionPermission() {
 }
 
 function afterPermissionGranted() {
-  // Save the current choices into a global variable
-  const choicesContainer = document.getElementById('choices-container');
-  savedChoices = Array.from(choicesContainer.querySelectorAll('.choice'));
-  
-  // Remove initial instructions and inputs from the DOM
+  // Store input values and remove elements
+  savedChoices = Array.from(document.querySelectorAll('.choice')).map(choice => {
+    const textInput = choice.querySelector('input[type="text"]');
+    const fileInput = choice.querySelector('input[type="file"]');
+    return {
+      text: textInput?.value || '',
+      file: fileInput?.files[0] || null
+    };
+  });
+
+  // Remove all interactive elements
   document.getElementById('choice-instructions').remove();
-  choicesContainer.remove();
+  document.getElementById('choices-container').remove();
   document.getElementById('add-choice').remove();
   document.getElementById('request-motion').remove();
-  
-  // Immediately show jiggle header and simulation button
+
+  // Add anti-undo class and show UI
+  document.body.classList.add('anti-undo');
   document.getElementById('jiggle-heading').style.display = 'block';
   document.getElementById('simulate-jiggle').style.display = 'block';
   
-  // Listen for device motion (if available)
+  // Remove any remaining inputs
+  document.querySelectorAll('input').forEach(input => input.remove());
+  
   window.addEventListener("devicemotion", handleMotion);
 }
 
 function handleMotion(event) {
-  if (hasChosen) return; // Only one trigger allowed
+  if (hasChosen) return;
   const acc = event.accelerationIncludingGravity;
   if (!acc) return;
   const threshold = 15;
-  if (
-    Math.abs(acc.x) > threshold ||
-    Math.abs(acc.y) > threshold ||
-    Math.abs(acc.z) > threshold
-  ) {
+  if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold || Math.abs(acc.z) > threshold) {
     triggerChoice();
   }
 }
@@ -118,28 +117,23 @@ document.getElementById('simulate-jiggle').addEventListener('click', () => {
 
 function triggerChoice() {
   hasChosen = true;
-  // Stop jiggle effect by removing the jiggle-effect class
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
   chooseRandom();
-  // Remove the devicemotion listener to prevent further triggers
   window.removeEventListener("devicemotion", handleMotion);
 }
 
 function chooseRandom() {
-  // Use the savedChoices from before removal
   const randomIndex = Math.floor(Math.random() * savedChoices.length);
-  const chosenChoice = savedChoices[randomIndex];
-  const textInput = chosenChoice.querySelector('input[type="text"]');
-  const fileInput = chosenChoice.querySelector('input[type="file"]');
+  const chosen = savedChoices[randomIndex];
   const resultEl = document.getElementById('result');
   resultEl.innerHTML = '';
-  
-  if (fileInput.files && fileInput.files[0]) {
+
+  if (chosen.file) {
     const img = document.createElement('img');
-    img.src = URL.createObjectURL(fileInput.files[0]);
+    img.src = URL.createObjectURL(chosen.file);
     resultEl.appendChild(img);
-  } else if (textInput.value.trim() !== '') {
-    resultEl.textContent = textInput.value;
+  } else if (chosen.text.trim()) {
+    resultEl.textContent = chosen.text;
   } else {
     resultEl.textContent = "No valid input in chosen option.";
   }
