@@ -1,4 +1,4 @@
-// Add new choice when button clicked
+// Add a new choice block when "Add More Choice" is clicked
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -13,14 +13,14 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-// On clicking Next, gather choices and redirect to jiggle.html
-document.getElementById('next-button').addEventListener('click', () => {
-  // Gather each choice as a promise (to handle image file reading)
-  const choices = Array.from(document.querySelectorAll('.choice')).map(choice => {
+// Gather choices (text and images) and store in localStorage, then redirect
+function gatherChoicesAndRedirect() {
+  const choicesElements = Array.from(document.querySelectorAll('.choice'));
+  const choicesPromises = choicesElements.map(choice => {
     const textInput = choice.querySelector('input[type="text"]');
     const fileInput = choice.querySelector('input[type="file"]');
-    return new Promise((resolve) => {
-      if(fileInput.files && fileInput.files[0]) {
+    return new Promise(resolve => {
+      if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
           resolve({ text: textInput.value.trim(), image: e.target.result });
@@ -31,9 +31,28 @@ document.getElementById('next-button').addEventListener('click', () => {
       }
     });
   });
-  Promise.all(choices).then(results => {
-    localStorage.setItem('jiqqleChoices', JSON.stringify(results));
-    // Redirect to jiggle page
+  
+  Promise.all(choicesPromises).then(choicesData => {
+    localStorage.setItem('jiqqleChoices', JSON.stringify(choicesData));
     window.location.href = 'jiggle.html';
   });
+}
+
+// When "Next" is clicked, request motion permission then gather choices and redirect
+document.getElementById('next-button').addEventListener('click', async () => {
+  // Request permission if needed (iOS 13+)
+  if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+    try {
+      const response = await DeviceMotionEvent.requestPermission();
+      if (response !== "granted") {
+        alert("Motion permission not granted.");
+        return;
+      }
+    } catch (err) {
+      alert("Error requesting motion permission.");
+      return;
+    }
+  }
+  // Permission granted (or not needed): gather choices and redirect
+  gatherChoicesAndRedirect();
 });
