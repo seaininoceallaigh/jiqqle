@@ -3,18 +3,30 @@ const firstWordArr = ["Don't", "know", "what", "to", "do?"];
 const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
 let hasChosen = false;
-
-// Store input data instead of DOM elements
 let savedChoices = [];
+
+// New helper function to clear iOS undo stack
+function clearUndoStack() {
+  const tempInput = document.createElement('input');
+  tempInput.style.cssText = 'position:fixed;opacity:0;height:0;width:0;';
+  document.body.appendChild(tempInput);
+  tempInput.focus();
+  setTimeout(() => {
+    tempInput.blur();
+    document.body.removeChild(tempInput);
+    try {
+      document.execCommand('undo');
+      document.execCommand('redo');
+    } catch(e) {}
+  }, 50);
+}
 
 function displayLetter(letter, container) {
   counter++;
-  const x = Math.floor(Math.random() * 200) - 100;
-  const y = Math.floor(Math.random() * 200) - 100;
   const newDiv = document.createElement('div');
   newDiv.className = `loading large ${counter}`;
-  newDiv.style.setProperty('--X', `${x}px`);
-  newDiv.style.setProperty('--Y', `${y}px`);
+  newDiv.style.setProperty('--X', `${Math.random()*200-100}px`);
+  newDiv.style.setProperty('--Y', `${Math.random()*200-100}px`);
   newDiv.textContent = letter;
   container.appendChild(newDiv);
 }
@@ -41,100 +53,86 @@ displayLoader();
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
-  const textInput = document.createElement('input');
-  textInput.type = 'text';
-  textInput.placeholder = 'Enter text';
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  choiceDiv.appendChild(textInput);
-  choiceDiv.appendChild(fileInput);
+  choiceDiv.innerHTML = `
+    <input type="text" placeholder="Enter text">
+    <input type="file" accept="image/*">
+  `;
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
 document.getElementById('request-motion').addEventListener('click', requestMotionPermission);
 
 async function requestMotionPermission() {
-  if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
     try {
       const response = await DeviceMotionEvent.requestPermission();
-      if (response === "granted") {
-        afterPermissionGranted();
-        document.activeElement?.blur();
-      } else {
-        alert("Permission denied. Please enable device motion.");
-      }
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Error requesting permission.");
-    }
+      if (response === 'granted') afterPermissionGranted();
+      else alert('Permission denied');
+    } catch(e) { console.error(e); }
   } else {
     afterPermissionGranted();
   }
 }
 
 function afterPermissionGranted() {
-  // Store input values and remove elements
+  // Save data and destroy inputs
   savedChoices = Array.from(document.querySelectorAll('.choice')).map(choice => {
-    const textInput = choice.querySelector('input[type="text"]');
-    const fileInput = choice.querySelector('input[type="file"]');
-    return {
-      text: textInput?.value || '',
-      file: fileInput?.files[0] || null
-    };
+    const text = choice.querySelector('input[type="text"]')?.value || '';
+    const file = choice.querySelector('input[type="file"]')?.files[0] || null;
+    return { text, file };
   });
 
-  // Remove all interactive elements
-  document.getElementById('choice-instructions').remove();
-  document.getElementById('choices-container').remove();
-  document.getElementById('add-choice').remove();
-  document.getElementById('request-motion').remove();
+  // Remove all inputs and UI elements
+  document.querySelectorAll('input').forEach(input => {
+    input.replaceWith(input.cloneNode(false));
+    input.remove();
+  });
+  
+  ['choice-instructions', 'choices-container', 'add-choice', 'request-motion']
+    .forEach(id => document.getElementById(id)?.remove());
 
-  // Add anti-undo class and show UI
+  // Clear undo stack and prevent interactions
+  clearUndoStack();
   document.body.classList.add('anti-undo');
+  document.activeElement?.blur();
+  
+  // Force layout recalculation
+  void document.body.offsetHeight;
+
+  // Show jiggle UI
   document.getElementById('jiggle-heading').style.display = 'block';
   document.getElementById('simulate-jiggle').style.display = 'block';
   
-  // Remove any remaining inputs
-  document.querySelectorAll('input').forEach(input => input.remove());
-  
-  window.addEventListener("devicemotion", handleMotion);
+  // Add motion listener after cleanup
+  setTimeout(() => window.addEventListener('devicemotion', handleMotion), 100);
 }
 
 function handleMotion(event) {
   if (hasChosen) return;
-  const acc = event.accelerationIncludingGravity;
-  if (!acc) return;
+  const acc = event.accelerationIncludingGravity || {};
   const threshold = 15;
-  if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold || Math.abs(acc.z) > threshold) {
+  if ([acc.x, acc.y, acc.z].some(v => Math.abs(v) > threshold)) {
     triggerChoice();
   }
 }
 
-document.getElementById('simulate-jiggle').addEventListener('click', () => {
-  if (!hasChosen) triggerChoice();
-});
+document.getElementById('simulate-jiggle').addEventListener('click', triggerChoice);
 
 function triggerChoice() {
+  if (hasChosen) return;
   hasChosen = true;
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
-  chooseRandom();
-  window.removeEventListener("devicemotion", handleMotion);
-}
-
-function chooseRandom() {
-  const randomIndex = Math.floor(Math.random() * savedChoices.length);
-  const chosen = savedChoices[randomIndex];
+  window.removeEventListener('devicemotion', handleMotion);
+  
+  const choice = savedChoices[Math.floor(Math.random() * savedChoices.length)];
   const resultEl = document.getElementById('result');
   resultEl.innerHTML = '';
-
-  if (chosen.file) {
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(chosen.file);
+  
+  if (choice.file) {
+    const img = new Image();
+    img.src = URL.createObjectURL(choice.file);
     resultEl.appendChild(img);
-  } else if (chosen.text.trim()) {
-    resultEl.textContent = chosen.text;
   } else {
-    resultEl.textContent = "No valid input in chosen option.";
+    resultEl.textContent = choice.text.trim() || "No valid input";
   }
 }
