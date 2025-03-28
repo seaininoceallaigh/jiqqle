@@ -1,72 +1,57 @@
-let hasChosen = false;
-let choices = [];
-let lastShakeTime = 0;
-
-function loadChoices() {
-  const urlParams = new URLSearchParams(window.location.search);
-  choices = [];
+document.addEventListener('DOMContentLoaded', async () => {
+  const choices = JSON.parse(localStorage.getItem('jiggleChoices') || []);
+  let hasChosen = false;
   
-  let index = 0;
-  while(true) {
-    const text = urlParams.get(`choice${index}_text`);
-    const file = urlParams.get(`choice${index}_file`);
+  if (choices.length === 0) {
+    document.getElementById('jiggle-heading').textContent = 'No choices found!';
+    return;
+  }
+
+  // Request motion permission
+  if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
+    try {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission !== 'granted') {
+        document.getElementById('jiggle-heading').textContent = 'Permission required!';
+        return;
+      }
+    } catch (error) {
+      console.error('Permission error:', error);
+    }
+  }
+
+  // Shake detection
+  function handleMotion(event) {
+    if (hasChosen) return;
     
-    if (!text && !file) break;
+    const acc = event.accelerationIncludingGravity || {};
+    const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
     
-    choices.push({
-      text: text || '',
-      file: file || null
-    });
+    if (force > 25) {
+      triggerChoice();
+    }
+  }
+
+  function triggerChoice() {
+    if (hasChosen) return;
+    hasChosen = true;
     
-    index++;
+    const choice = choices[Math.floor(Math.random() * choices.length)];
+    const resultEl = document.getElementById('result');
+    resultEl.innerHTML = '';
+    
+    if (choice.file) {
+      const img = new Image();
+      img.src = choice.file;
+      resultEl.appendChild(img);
+    } else if (choice.text) {
+      resultEl.textContent = choice.text;
+    }
+    
+    window.removeEventListener('devicemotion', handleMotion);
   }
-}
 
-function handleMotion(event) {
-  if (hasChosen) return;
-  
-  const acc = event.accelerationIncludingGravity || {};
-  const now = Date.now();
-  
-  // Calculate force (absolute values sum)
-  const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
-  const threshold = 25;
-  const debounce = 1000;
-  
-  if (force > threshold && (now - lastShakeTime) > debounce) {
-    lastShakeTime = now;
-    triggerChoice();
-  }
-}
-
-function triggerChoice() {
-  if (hasChosen || choices.length === 0) return;
-  hasChosen = true;
-  
-  const choice = choices[Math.floor(Math.random() * choices.length)];
-  const resultEl = document.getElementById('result');
-  resultEl.innerHTML = '';
-
-  if (choice.file) {
-    const img = new Image();
-    img.src = choice.file;
-    resultEl.appendChild(img);
-  } else if (choice.text) {
-    resultEl.textContent = choice.text;
-  }
-  
-  window.removeEventListener('devicemotion', handleMotion);
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  loadChoices();
-  
-  if (typeof DeviceMotionEvent !== 'undefined') {
-    window.addEventListener('devicemotion', handleMotion);
-  } else {
-    console.log('Device motion not supported');
-  }
-  
+  // Setup listeners
+  window.addEventListener('devicemotion', handleMotion);
   document.getElementById('simulate-jiggle').addEventListener('click', triggerChoice);
 });
