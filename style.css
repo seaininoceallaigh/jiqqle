@@ -1,4 +1,3 @@
-/* Global styling */
 body {
   margin: 0;
   padding: 0;
@@ -11,7 +10,6 @@ body {
   caret-color: transparent;
 }
 
-/* Preloader */
 .preloader {
   position: fixed;
   background-color: black;
@@ -41,7 +39,11 @@ body {
   35% { transform: translate(0,0); }
 }
 
-/* Jiggle animation */
+.jiggle-effect {
+  display: inline-block;
+  animation: jiggleEffect 0.5s infinite;
+}
+
 @keyframes jiggleEffect {
   0% { transform: translateX(0); }
   20% { transform: translateX(-8px); }
@@ -51,12 +53,6 @@ body {
   100% { transform: translateX(0); }
 }
 
-.jiggle-effect {
-  display: inline-block;
-  animation: jiggleEffect 0.5s infinite;
-}
-
-/* Choices Section */
 #choices-section {
   padding: 20px;
   min-height: 100vh;
@@ -88,6 +84,10 @@ button {
   padding: 10px 20px;
   font-size: 16px;
   margin: 5px;
+  background: #444;
+  border: none;
+  color: white;
+  border-radius: 5px;
 }
 
 #result {
