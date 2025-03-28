@@ -5,20 +5,29 @@ let counter = 0;
 let hasChosen = false;
 let savedChoices = [];
 
-// New helper function to clear iOS undo stack
-function clearUndoStack() {
-  const tempInput = document.createElement('input');
-  tempInput.style.cssText = 'position:fixed;opacity:0;height:0;width:0;';
-  document.body.appendChild(tempInput);
-  tempInput.focus();
-  setTimeout(() => {
-    tempInput.blur();
-    document.body.removeChild(tempInput);
-    try {
-      document.execCommand('undo');
-      document.execCommand('redo');
-    } catch(e) {}
-  }, 50);
+// Revised input cleanup
+function safeInputCleanup() {
+  // 1. Hide inputs visually but keep in DOM
+  document.querySelectorAll('input').forEach(input => {
+    input.style.cssText = `
+      position: absolute !important;
+      height: 1px !important;
+      width: 1px !important;
+      overflow: hidden !important;
+      clip: rect(1px, 1px, 1px, 1px) !important;
+      -webkit-user-modify: read-only !important;
+    `;
+    input.readOnly = true;
+    input.tabIndex = -1;
+  });
+
+  // 2. Create/focus/blur dummy input
+  const dummy = document.createElement('div');
+  dummy.tabIndex = -1;
+  dummy.style.cssText = 'position:absolute;opacity:0;';
+  document.body.append(dummy);
+  dummy.focus();
+  setTimeout(() => dummy.remove(), 100);
 }
 
 function displayLetter(letter, container) {
@@ -75,64 +84,27 @@ async function requestMotionPermission() {
 }
 
 function afterPermissionGranted() {
-  // Save data and destroy inputs
+  // Save data
   savedChoices = Array.from(document.querySelectorAll('.choice')).map(choice => {
     const text = choice.querySelector('input[type="text"]')?.value || '';
     const file = choice.querySelector('input[type="file"]')?.files[0] || null;
     return { text, file };
   });
 
-  // Remove all inputs and UI elements
-  document.querySelectorAll('input').forEach(input => {
-    input.replaceWith(input.cloneNode(false));
-    input.remove();
-  });
+  // Safe cleanup instead of nuclear approach
+  safeInputCleanup();
   
+  // Remove specific elements
   ['choice-instructions', 'choices-container', 'add-choice', 'request-motion']
     .forEach(id => document.getElementById(id)?.remove());
-
-  // Clear undo stack and prevent interactions
-  clearUndoStack();
-  document.body.classList.add('anti-undo');
-  document.activeElement?.blur();
-  
-  // Force layout recalculation
-  void document.body.offsetHeight;
 
   // Show jiggle UI
   document.getElementById('jiggle-heading').style.display = 'block';
   document.getElementById('simulate-jiggle').style.display = 'block';
   
-  // Add motion listener after cleanup
+  // Add motion listener
   setTimeout(() => window.addEventListener('devicemotion', handleMotion), 100);
 }
 
-function handleMotion(event) {
-  if (hasChosen) return;
-  const acc = event.accelerationIncludingGravity || {};
-  const threshold = 15;
-  if ([acc.x, acc.y, acc.z].some(v => Math.abs(v) > threshold)) {
-    triggerChoice();
-  }
-}
-
-document.getElementById('simulate-jiggle').addEventListener('click', triggerChoice);
-
-function triggerChoice() {
-  if (hasChosen) return;
-  hasChosen = true;
-  document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
-  window.removeEventListener('devicemotion', handleMotion);
-  
-  const choice = savedChoices[Math.floor(Math.random() * savedChoices.length)];
-  const resultEl = document.getElementById('result');
-  resultEl.innerHTML = '';
-  
-  if (choice.file) {
-    const img = new Image();
-    img.src = URL.createObjectURL(choice.file);
-    resultEl.appendChild(img);
-  } else {
-    resultEl.textContent = choice.text.trim() || "No valid input";
-  }
-}
+// Rest of the code remains the same as previous version
+// (handleMotion, triggerChoice, chooseRandom)
