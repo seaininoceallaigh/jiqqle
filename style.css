@@ -94,14 +94,15 @@ button {
   margin-top: 20px;
 }
 
-/* Add these rules at the end */
-.anti-undo * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
+.anti-undo {
+  -webkit-user-modify: read-only !important;
+  user-modify: read-only !important;
   caret-color: transparent !important;
 }
 
-.anti-undo input {
-  display: none !important;
+.anti-undo * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  pointer-events: none !important;
 }
 
