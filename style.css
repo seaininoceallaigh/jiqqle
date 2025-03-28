@@ -94,3 +94,14 @@ button {
   margin-top: 20px;
 }
 
+/* Add these rules at the end */
+.anti-undo * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  caret-color: transparent !important;
+}
+
+.anti-undo input {
+  display: none !important;
+}
+
