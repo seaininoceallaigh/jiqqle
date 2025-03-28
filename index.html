@@ -2,17 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Jiggle Input</title>
+  <title>Jiqqle – Choose Options</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="preloader">
-    <div class="loader-container"></div>
-  </div>
-
-  <div id="choices-section" style="display:none;">
-    <h2 id="choice-instructions">Enter 2 or more choices</h2>
+  <div id="choices-section">
+    <h2 id="choice-instructions" class="fade-in">Enter 2 or more choices</h2>
     <div id="choices-container">
       <div class="choice">
         <input type="text" placeholder="Enter text">
@@ -24,9 +20,8 @@
       </div>
     </div>
     <button id="add-choice">Add More Choice</button>
-    <button id="request-motion">Next</button>
+    <button id="next-button">Next</button>
   </div>
-
-  <script src="./script.js"></script>
+  <script src="choices.js"></script>
 </body>
 </html>
