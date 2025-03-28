@@ -1,4 +1,4 @@
-// Add a new choice block when "Add More Choice" is clicked
+// Add new choice block when "Add More Choice" is clicked
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -13,7 +13,7 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-// Gather choices (text and images) and store in localStorage, then redirect
+// Gather choices and convert any image files to Data URLs
 function gatherChoicesAndRedirect() {
   const choicesElements = Array.from(document.querySelectorAll('.choice'));
   const choicesPromises = choicesElements.map(choice => {
@@ -24,6 +24,10 @@ function gatherChoicesAndRedirect() {
         const reader = new FileReader();
         reader.onload = function(e) {
           resolve({ text: textInput.value.trim(), image: e.target.result });
+        };
+        // Ensure the promise resolves even if an error occurs
+        reader.onerror = function() {
+          resolve({ text: textInput.value.trim(), image: null });
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
@@ -38,10 +42,12 @@ function gatherChoicesAndRedirect() {
   });
 }
 
-// When "Next" is clicked, request motion permission then gather choices and redirect
+// When "Next" is clicked, request motion permission (if needed) and then redirect
 document.getElementById('next-button').addEventListener('click', async () => {
-  // Request permission if needed (iOS 13+)
-  if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+  if (
+    typeof DeviceMotionEvent !== "undefined" &&
+    typeof DeviceMotionEvent.requestPermission === "function"
+  ) {
     try {
       const response = await DeviceMotionEvent.requestPermission();
       if (response !== "granted") {
@@ -53,6 +59,6 @@ document.getElementById('next-button').addEventListener('click', async () => {
       return;
     }
   }
-  // Permission granted (or not needed): gather choices and redirect
+  // If permission is granted or not required, gather choices and redirect
   gatherChoicesAndRedirect();
 });
