@@ -1,13 +1,18 @@
 let hasChosen = false;
 let choices = [];
 
+// Ensure the jiggle heading is visible on load
+window.onload = () => {
+  document.getElementById('jiggle-heading').style.display = 'block';
+};
+
 // Retrieve stored choices from localStorage
 const saved = localStorage.getItem('jiqqleChoices');
 if (saved) {
   choices = JSON.parse(saved);
 }
 
-// Function to pick a random choice and display it
+// Pick a random choice and display it
 function chooseRandom() {
   if (choices.length === 0) {
     document.getElementById('result').textContent = "No valid choices.";
@@ -28,7 +33,7 @@ function chooseRandom() {
   }
 }
 
-// Handle device motion events to trigger the random choice
+// Listen for device motion to trigger the random choice
 function handleMotion(event) {
   if (hasChosen) return;
   const acc = event.accelerationIncludingGravity;
@@ -41,16 +46,16 @@ function handleMotion(event) {
 
 function triggerChoice() {
   hasChosen = true;
-  // Stop the jiggle animation by removing the jiggle-effect class
+  // Stop the jiggle animation
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
   chooseRandom();
   window.removeEventListener("devicemotion", handleMotion);
 }
 
-// Add device motion listener (should already have permission)
+// Add the devicemotion listener
 window.addEventListener("devicemotion", handleMotion);
 
-// Show simulation button on desktop (no touch support)
+// Show simulation button on desktop (if touch not supported)
 if (!("ontouchstart" in window)) {
   const simBtn = document.getElementById('simulate-jiggle');
   simBtn.style.display = 'block';
