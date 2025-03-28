@@ -4,32 +4,9 @@ const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
 let hasChosen = false;
 let savedChoices = [];
+let lastShakeTime = 0;
 
-// Revised input cleanup
-function safeInputCleanup() {
-  // 1. Hide inputs visually but keep in DOM
-  document.querySelectorAll('input').forEach(input => {
-    input.style.cssText = `
-      position: absolute !important;
-      height: 1px !important;
-      width: 1px !important;
-      overflow: hidden !important;
-      clip: rect(1px, 1px, 1px, 1px) !important;
-      -webkit-user-modify: read-only !important;
-    `;
-    input.readOnly = true;
-    input.tabIndex = -1;
-  });
-
-  // 2. Create/focus/blur dummy input
-  const dummy = document.createElement('div');
-  dummy.tabIndex = -1;
-  dummy.style.cssText = 'position:absolute;opacity:0;';
-  document.body.append(dummy);
-  dummy.focus();
-  setTimeout(() => dummy.remove(), 100);
-}
-
+// Preloader animations
 function displayLetter(letter, container) {
   counter++;
   const newDiv = document.createElement('div');
@@ -57,8 +34,48 @@ function displayLoader() {
   }, 3000);
 }
 
-displayLoader();
+// Input management
+function destroyInputs() {
+  // Replace all inputs with inert elements
+  document.querySelectorAll('input').forEach(input => {
+    const placeholder = document.createElement('div');
+    placeholder.dataset.originalType = input.type;
+    if (input.type === 'file' && input.files[0]) {
+      placeholder.dataset.fileName = input.files[0].name;
+    }
+    input.replaceWith(placeholder);
+  });
 
+  // Force iOS focus reset
+  const focusTrap = document.createElement('textarea');
+  focusTrap.style.cssText = 'position:absolute;top:-9999px;opacity:0;';
+  document.body.appendChild(focusTrap);
+  focusTrap.focus();
+  setTimeout(() => {
+    focusTrap.blur();
+    focusTrap.remove();
+  }, 50);
+}
+
+// Shake detection
+function handleMotion(event) {
+  if (hasChosen) return;
+  
+  const acc = event.accelerationIncludingGravity || {};
+  const now = Date.now();
+  
+  // Physics-based detection
+  const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
+  const threshold = 25; // Optimized for natural shake
+  const debounce = 800; // Minimum time between shakes
+  
+  if (force > threshold && (now - lastShakeTime) > debounce) {
+    lastShakeTime = now;
+    triggerChoice();
+  }
+}
+
+// Core functionality
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -69,42 +86,65 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-document.getElementById('request-motion').addEventListener('click', requestMotionPermission);
-
 async function requestMotionPermission() {
-  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
-    try {
-      const response = await DeviceMotionEvent.requestPermission();
-      if (response === 'granted') afterPermissionGranted();
-      else alert('Permission denied');
-    } catch(e) { console.error(e); }
-  } else {
-    afterPermissionGranted();
+  try {
+    if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+      const status = await DeviceMotionEvent.requestPermission();
+      if (status !== 'granted') {
+        alert('Motion permission required');
+        return;
+      }
+    }
+    
+    // Save choices before destruction
+    savedChoices = Array.from(document.querySelectorAll('.choice')).map(choice => {
+      const text = choice.querySelector('input[type="text"]')?.value || '';
+      const file = choice.querySelector('input[type="file"]')?.files[0] || null;
+      return { text, file };
+    });
+
+    // Destroy inputs and clean UI
+    destroyInputs();
+    document.getElementById('choice-instructions').remove();
+    document.getElementById('choices-container').remove();
+    document.getElementById('add-choice').remove();
+    document.getElementById('request-motion').remove();
+
+    // Show jiggle interface
+    document.getElementById('jiggle-heading').style.display = 'block';
+    document.getElementById('simulate-jiggle').style.display = 'block';
+    
+    // Enable motion detection
+    window.addEventListener('devicemotion', handleMotion);
+    document.getElementById('simulate-jiggle').addEventListener('click', triggerChoice);
+    
+  } catch (error) {
+    console.error('Error initializing motion:', error);
   }
 }
 
-function afterPermissionGranted() {
-  // Save data
-  savedChoices = Array.from(document.querySelectorAll('.choice')).map(choice => {
-    const text = choice.querySelector('input[type="text"]')?.value || '';
-    const file = choice.querySelector('input[type="file"]')?.files[0] || null;
-    return { text, file };
-  });
-
-  // Safe cleanup instead of nuclear approach
-  safeInputCleanup();
+function triggerChoice() {
+  if (hasChosen) return;
+  hasChosen = true;
   
-  // Remove specific elements
-  ['choice-instructions', 'choices-container', 'add-choice', 'request-motion']
-    .forEach(id => document.getElementById(id)?.remove());
+  // Display result
+  const choice = savedChoices[Math.floor(Math.random() * savedChoices.length)];
+  const resultEl = document.getElementById('result');
+  resultEl.innerHTML = '';
 
-  // Show jiggle UI
-  document.getElementById('jiggle-heading').style.display = 'block';
-  document.getElementById('simulate-jiggle').style.display = 'block';
-  
-  // Add motion listener
-  setTimeout(() => window.addEventListener('devicemotion', handleMotion), 100);
+  if (choice.file) {
+    const img = new Image();
+    img.src = URL.createObjectURL(choice.file);
+    resultEl.appendChild(img);
+  } else {
+    resultEl.textContent = choice.text.trim() || "No valid input";
+  }
+
+  // Cleanup
+  window.removeEventListener('devicemotion', handleMotion);
+  document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
 }
 
-// Rest of the code remains the same as previous version
-// (handleMotion, triggerChoice, chooseRandom)
+// Initial setup
+document.getElementById('request-motion').addEventListener('click', requestMotionPermission);
+displayLoader();
