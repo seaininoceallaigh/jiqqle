@@ -41,42 +41,30 @@ document.getElementById('add-choice').addEventListener('click', () => {
 });
 
 document.getElementById('request-motion').addEventListener('click', async () => {
-  const form = document.getElementById('choicesForm');
-  const choices = Array.from(document.querySelectorAll('.choice'));
+  const choices = [];
   
-  // Clear previous inputs
-  form.innerHTML = '';
-  
-  // Process each choice
-  for (const [index, choice] of choices.entries()) {
-    const textInput = choice.querySelector('input[type="text"]');
+  // Process all choices
+  const choiceElements = document.querySelectorAll('.choice');
+  for (const choice of choiceElements) {
+    const text = choice.querySelector('input[type="text"]').value.trim();
     const fileInput = choice.querySelector('input[type="file"]');
     
-    // Add text value
-    const textField = document.createElement('input');
-    textField.type = 'hidden';
-    textField.name = `choice${index}_text`;
-    textField.value = textInput.value.trim();
-    form.appendChild(textField);
-
-    // Process file if exists
+    const choiceData = { text };
+    
     if (fileInput.files[0]) {
-      const reader = new FileReader();
-      await new Promise(resolve => {
-        reader.onload = function(e) {
-          const fileField = document.createElement('input');
-          fileField.type = 'hidden';
-          fileField.name = `choice${index}_file`;
-          fileField.value = e.target.result;
-          form.appendChild(fileField);
-          resolve();
-        }
+      choiceData.file = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
         reader.readAsDataURL(fileInput.files[0]);
       });
     }
+    
+    choices.push(choiceData);
   }
   
-  form.submit();
+  // Save to localStorage and navigate
+  localStorage.setItem('jiggleChoices', JSON.stringify(choices));
+  window.location.href = 'selector.html';
 });
 
 displayLoader();
