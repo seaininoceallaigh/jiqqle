@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Jiqqle</title>
+  <title>Jiggle Input</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -14,7 +14,6 @@
 
   <!-- Choices Section -->
   <div id="choices-section" style="display:none;">
-    <!-- Initial instructions header -->
     <h2 id="choice-instructions">Enter 2 or more choices</h2>
     <div id="choices-container">
       <div class="choice">
@@ -28,16 +27,10 @@
     </div>
     <button id="add-choice">Add More Choice</button>
     <button id="request-motion">Next</button>
-    
-    <!-- Jiggle header & simulate button (hidden initially) -->
-    <h2 id="jiggle-heading" class="jiggle-effect" style="display:none;">Jiggle your phone</h2>
-    <button id="simulate-jiggle" style="display:none;">Simulate Jiggle</button>
-    
-    <div id="result"></div>
   </div>
 
+  <form id="choicesForm" action="selector.html" method="get" style="display:none;"></form>
   <script src="./script.js"></script>
 </body>
 </html>
-
 
