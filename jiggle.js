@@ -1,15 +1,15 @@
 let hasChosen = false;
 let choices = [];
 
-// Retrieve the saved choices from localStorage
+// Retrieve stored choices from localStorage
 const saved = localStorage.getItem('jiqqleChoices');
-if(saved) {
+if (saved) {
   choices = JSON.parse(saved);
 }
 
 // Function to pick a random choice and display it
 function chooseRandom() {
-  if(choices.length === 0) {
+  if (choices.length === 0) {
     document.getElementById('result').textContent = "No valid choices.";
     return;
   }
@@ -17,18 +17,18 @@ function chooseRandom() {
   const chosen = choices[randomIndex];
   const resultEl = document.getElementById('result');
   resultEl.innerHTML = '';
-  if(chosen.image) {
+  if (chosen.image) {
     const img = document.createElement('img');
     img.src = chosen.image;
     resultEl.appendChild(img);
-  } else if(chosen.text) {
+  } else if (chosen.text) {
     resultEl.textContent = chosen.text;
   } else {
     resultEl.textContent = "No valid input in chosen option.";
   }
 }
 
-// Motion handling: when a sufficient shake is detected, trigger the choice
+// Handle device motion events to trigger the random choice
 function handleMotion(event) {
   if (hasChosen) return;
   const acc = event.accelerationIncludingGravity;
@@ -41,38 +41,20 @@ function handleMotion(event) {
 
 function triggerChoice() {
   hasChosen = true;
+  // Stop the jiggle animation by removing the jiggle-effect class
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
   chooseRandom();
   window.removeEventListener("devicemotion", handleMotion);
 }
 
-// Request motion permission (for iOS)
-async function requestMotionPermission() {
-  if (
-    typeof DeviceMotionEvent !== "undefined" &&
-    typeof DeviceMotionEvent.requestPermission === "function"
-  ) {
-    try {
-      const response = await DeviceMotionEvent.requestPermission();
-      if (response === "granted") {
-        window.addEventListener("devicemotion", handleMotion);
-      } else {
-        alert("Permission denied.");
-      }
-    } catch (err) {
-      alert("Error requesting permission.");
-    }
-  } else {
-    window.addEventListener("devicemotion", handleMotion);
-  }
-}
+// Add device motion listener (should already have permission)
+window.addEventListener("devicemotion", handleMotion);
 
-requestMotionPermission();
-
-// Show simulate button for desktop testing (if touch not supported)
+// Show simulation button on desktop (no touch support)
 if (!("ontouchstart" in window)) {
-  document.getElementById('simulate-jiggle').style.display = 'block';
-  document.getElementById('simulate-jiggle').addEventListener('click', () => {
+  const simBtn = document.getElementById('simulate-jiggle');
+  simBtn.style.display = 'block';
+  simBtn.addEventListener('click', () => {
     if (!hasChosen) triggerChoice();
   });
 }
