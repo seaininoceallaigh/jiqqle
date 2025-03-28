@@ -109,6 +109,10 @@ document.getElementById('simulate-jiggle').addEventListener('click', () => {
 
 function triggerChoice() {
   hasChosen = true;
+//try to stop shake undo
+  if(document.activeElement) document.activeElement.blur();
+
+  
   // Stop jiggle effect by removing the jiggle-effect class
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
   chooseRandom();
