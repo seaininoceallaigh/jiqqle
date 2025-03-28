@@ -1,59 +1,19 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Helvetica, sans-serif;
+  font-family: Arial, sans-serif;
   text-align: center;
   background-color: black;
   color: white;
-  -webkit-user-select: none;
-  user-select: none;
-  caret-color: transparent;
 }
-
-.preloader {
-  position: fixed;
-  background-color: black;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.fade-in {
+  animation: fadeIn 2s ease forwards;
+  opacity: 0;
 }
-
-.loader-container {
-  display: block;
+@keyframes fadeIn {
+  to { opacity: 1; }
 }
-
-.loading {
-  display: inline-flex;
-  animation: return 3s ease;
-  padding: 0.25em;
-}
-
-.large {
-  font-size: 2rem;
-}
-
-@keyframes return {
-  0% { transform: translate(var(--X), var(--Y)); opacity: 1; }
-  25% { opacity: 0.7; }
-  35% { transform: translate(0,0); }
-}
-
-.jiggle-effect {
-  display: inline-block;
-  animation: jiggleEffect 0.5s infinite;
-}
-
-@keyframes jiggleEffect {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-8px); }
-  80% { transform: translateX(8px); }
-  100% { transform: translateX(0); }
-}
-
-#choices-section {
+#choices-section, #jiggle-section {
   padding: 20px;
   min-height: 100vh;
   display: flex;
@@ -61,41 +21,32 @@ body {
   justify-content: center;
   align-items: center;
 }
-
-#choices-container {
-  width: 90%;
-  max-width: 400px;
-  margin: 20px 0;
-}
-
 .choice {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
+  margin: 10px 0;
 }
-
-.choice input {
-  margin: 5px 0;
+input[type="text"], input[type="file"] {
+  display: block;
+  margin: 5px auto;
   padding: 10px;
   font-size: 16px;
 }
-
 button {
   padding: 10px 20px;
   font-size: 16px;
-  margin: 5px;
-  background: #444;
-  border: none;
-  color: white;
-  border-radius: 5px;
+  margin: 10px;
 }
-
-#result {
-  margin-top: 20px;
+.jiggle-effect {
+  display: inline-block;
+  animation: jiggleEffect 0.5s infinite;
 }
-
+@keyframes jiggleEffect {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
 #result img {
-  max-width: 200px;
-  max-height: 200px;
-  margin-top: 20px;
+  max-width: 80%;
+  height: auto;
 }
