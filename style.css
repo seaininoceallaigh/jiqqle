@@ -1,4 +1,4 @@
-/* Global styling and centering */
+/* Global styling */
 body {
   margin: 0;
   padding: 0;
@@ -6,6 +6,9 @@ body {
   text-align: center;
   background-color: black;
   color: white;
+  -webkit-user-select: none;
+  user-select: none;
+  caret-color: transparent;
 }
 
 /* Preloader */
@@ -38,7 +41,7 @@ body {
   35% { transform: translate(0,0); }
 }
 
-/* New jiggle animation */
+/* Jiggle animation */
 @keyframes jiggleEffect {
   0% { transform: translateX(0); }
   20% { transform: translateX(-8px); }
@@ -49,11 +52,11 @@ body {
 }
 
 .jiggle-effect {
-  display: inline-block; /* ensures transforms work */
+  display: inline-block;
   animation: jiggleEffect 0.5s infinite;
 }
 
-/* Choices Section styling */
+/* Choices Section */
 #choices-section {
   padding: 20px;
   min-height: 100vh;
@@ -75,43 +78,24 @@ body {
   margin-bottom: 10px;
 }
 
-.choice input[type="text"],
-.choice input[type="file"] {
+.choice input {
   margin: 5px 0;
   padding: 10px;
   font-size: 16px;
 }
 
-/* Buttons */
 button {
   padding: 10px 20px;
   font-size: 16px;
   margin: 5px;
 }
 
-/* Result styling */
 #result {
   margin-top: 20px;
 }
 
-/* Replace nuclear class with safer alternative */
-/* Add these nuclear options */
-/* Prevent any text selection/input */
-body {
-  -webkit-user-select: none;
-  user-select: none;
-  caret-color: transparent;
-}
-
-/* Hide destroyed input placeholders */
-div[data-original-type] {
-  display: none !important;
-}
-
-/* Keep interactive elements usable */
-#jiggle-heading,
-#simulate-jiggle {
-  -webkit-user-select: none;
-  user-select: none;
-  pointer-events: auto;
+#result img {
+  max-width: 200px;
+  max-height: 200px;
+  margin-top: 20px;
 }
