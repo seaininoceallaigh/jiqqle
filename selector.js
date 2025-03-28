@@ -1,33 +1,30 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const choices = JSON.parse(localStorage.getItem('jiggleChoices') || []);
+document.addEventListener('DOMContentLoaded', () => {
+  const choices = JSON.parse(localStorage.getItem('jiggleChoices') || [];
   let hasChosen = false;
-  
-  if (choices.length === 0) {
-    document.getElementById('jiggle-heading').textContent = 'No choices found!';
+  let motionListenerActive = false;
+
+  // Check for choices
+  if (choices.length < 1) {
+    document.getElementById('jiggle-heading').textContent = 'No choices found! Go back and add some.';
     return;
   }
 
-  // Request motion permission
-  if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
-    try {
-      const permission = await DeviceMotionEvent.requestPermission();
-      if (permission !== 'granted') {
-        document.getElementById('jiggle-heading').textContent = 'Permission required!';
-        return;
-      }
-    } catch (error) {
-      console.error('Permission error:', error);
-    }
-  }
+  // Elements
+  const jiggleHeading = document.getElementById('jiggle-heading');
+  const simulateBtn = document.getElementById('simulate-jiggle');
 
-  // Shake detection
+  // Shake detection logic
   function handleMotion(event) {
     if (hasChosen) return;
     
     const acc = event.accelerationIncludingGravity || {};
-    const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
+    const force = Math.sqrt(
+      Math.pow(acc.x, 2) + 
+      Math.pow(acc.y, 2) + 
+      Math.pow(acc.z - 9.81, 2) // Account for gravity
+    );
     
-    if (force > 25) {
+    if (force > 15) { // Lowered threshold for better sensitivity
       triggerChoice();
     }
   }
@@ -44,14 +41,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       const img = new Image();
       img.src = choice.file;
       resultEl.appendChild(img);
-    } else if (choice.text) {
-      resultEl.textContent = choice.text;
+    } else {
+      resultEl.textContent = choice.text || "No valid input";
     }
     
-    window.removeEventListener('devicemotion', handleMotion);
+    if (motionListenerActive) {
+      window.removeEventListener('devicemotion', handleMotion);
+    }
   }
 
-  // Setup listeners
-  window.addEventListener('devicemotion', handleMotion);
-  document.getElementById('simulate-jiggle').addEventListener('click', triggerChoice);
+  // Permission handling
+  async function enableMotion() {
+    try {
+      if (typeof DeviceMotionEvent !== 'undefined' && 
+          typeof DeviceMotionEvent.requestPermission === 'function') {
+        const status = await DeviceMotionEvent.requestPermission();
+        if (status !== 'granted') {
+          jiggleHeading.textContent = 'Permission required - Tap button to simulate';
+          return;
+        }
+      }
+      
+      // Start listening for motion
+      window.addEventListener('devicemotion', handleMotion);
+      motionListenerActive = true;
+      jiggleHeading.textContent = 'Jiggle your phone!';
+      
+    } catch (error) {
+      console.error('Motion error:', error);
+      jiggleHeading.textContent = 'Error enabling motion';
+    }
+  }
+
+  // Button click handlers
+  simulateBtn.addEventListener('click', async () => {
+    if (!motionListenerActive) {
+      await enableMotion();
+    }
+    if (!hasChosen) {
+      triggerChoice();
+    }
+  });
+
+  // Initial permission check for non-iOS devices
+  if (typeof DeviceMotionEvent !== 'undefined' && 
+      typeof DeviceMotionEvent.requestPermission !== 'function') {
+    enableMotion();
+  }
 });
