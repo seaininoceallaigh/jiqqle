@@ -95,17 +95,23 @@ button {
 }
 
 /* Replace nuclear class with safer alternative */
-.safe-mode input {
-  pointer-events: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  caret-color: transparent !important;
+/* Add these nuclear options */
+/* Prevent any text selection/input */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  caret-color: transparent;
 }
 
-/* Keep jiggle elements interactive */
+/* Hide destroyed input placeholders */
+div[data-original-type] {
+  display: none !important;
+}
+
+/* Keep interactive elements usable */
 #jiggle-heading,
 #simulate-jiggle {
-  pointer-events: auto !important;
-  -webkit-user-select: auto !important;
-  user-select: auto !important;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: auto;
 }
