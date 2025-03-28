@@ -62,8 +62,7 @@ async function requestMotionPermission() {
       const response = await DeviceMotionEvent.requestPermission();
       if (response === "granted") {
         afterPermissionGranted();
-        //try to stop shake undo
-  if(document.activeElement) document.activeElement.blur();
+        
       } else {
         alert("Permission denied. Please enable device motion in your settings.");
       }
@@ -73,6 +72,8 @@ async function requestMotionPermission() {
     }
   } else {
     afterPermissionGranted();
+    //try to stop shake undo
+  if(document.activeElement) document.activeElement.blur();
   }
 }
 
