@@ -4,6 +4,9 @@ const secondWordArr = ["Let", "the", "Universe", "decide"];
 let counter = 0;
 let hasChosen = false; // ensure only one trigger
 
+// Global variable to store the user choices (DOM elements)
+let savedChoices = [];
+
 function displayLetter(letter, container) {
   counter++;
   const x = Math.floor(Math.random() * 200) - 100;
@@ -62,7 +65,8 @@ async function requestMotionPermission() {
       const response = await DeviceMotionEvent.requestPermission();
       if (response === "granted") {
         afterPermissionGranted();
-        
+        // Attempt to remove focus from any active element
+        if(document.activeElement) document.activeElement.blur();
       } else {
         alert("Permission denied. Please enable device motion in your settings.");
       }
@@ -72,17 +76,19 @@ async function requestMotionPermission() {
     }
   } else {
     afterPermissionGranted();
-    //try to stop shake undo
-  if(document.activeElement) document.activeElement.blur();
   }
 }
 
 function afterPermissionGranted() {
-  // Hide initial instructions and choices
-  document.getElementById('choice-instructions').style.display = 'none';
-  document.getElementById('choices-container').style.display = 'none';
-  document.getElementById('add-choice').style.display = 'none';
-  document.getElementById('request-motion').style.display = 'none';
+  // Save the current choices into a global variable
+  const choicesContainer = document.getElementById('choices-container');
+  savedChoices = Array.from(choicesContainer.querySelectorAll('.choice'));
+  
+  // Remove initial instructions and inputs from the DOM
+  document.getElementById('choice-instructions').remove();
+  choicesContainer.remove();
+  document.getElementById('add-choice').remove();
+  document.getElementById('request-motion').remove();
   
   // Immediately show jiggle header and simulation button
   document.getElementById('jiggle-heading').style.display = 'block';
@@ -112,7 +118,6 @@ document.getElementById('simulate-jiggle').addEventListener('click', () => {
 
 function triggerChoice() {
   hasChosen = true;
-  
   // Stop jiggle effect by removing the jiggle-effect class
   document.getElementById('jiggle-heading').classList.remove('jiggle-effect');
   chooseRandom();
@@ -121,9 +126,9 @@ function triggerChoice() {
 }
 
 function chooseRandom() {
-  const choices = document.querySelectorAll('.choice');
-  const randomIndex = Math.floor(Math.random() * choices.length);
-  const chosenChoice = choices[randomIndex];
+  // Use the savedChoices from before removal
+  const randomIndex = Math.floor(Math.random() * savedChoices.length);
+  const chosenChoice = savedChoices[randomIndex];
   const textInput = chosenChoice.querySelector('input[type="text"]');
   const fileInput = chosenChoice.querySelector('input[type="file"]');
   const resultEl = document.getElementById('result');
