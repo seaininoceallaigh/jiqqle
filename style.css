@@ -94,15 +94,18 @@ button {
   margin-top: 20px;
 }
 
-.anti-undo {
-  -webkit-user-modify: read-only !important;
-  user-modify: read-only !important;
+/* Replace nuclear class with safer alternative */
+.safe-mode input {
+  pointer-events: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
   caret-color: transparent !important;
 }
 
-.anti-undo * {
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  pointer-events: none !important;
+/* Keep jiggle elements interactive */
+#jiggle-heading,
+#simulate-jiggle {
+  pointer-events: auto !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
 }
-
