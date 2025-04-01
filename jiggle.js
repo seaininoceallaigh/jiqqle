@@ -1,4 +1,3 @@
-// jiggle.js
 document.addEventListener('DOMContentLoaded', function() {
   const jiggleHeading = document.getElementById('jiggle-heading');
   const simulateBtn = document.getElementById('simulate-jiggle');
@@ -6,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let choices = [];
   const shakeThreshold = 25;
   let lastShakeTime = 0;
-
+  
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('jiqqleDB', 1);
@@ -18,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     });
   }
-
+  
   function getChoices(db) {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['choices'], 'readonly');
@@ -32,13 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     });
   }
-
+  
   async function loadChoices() {
     const db = await openDatabase();
     choices = await getChoices(db);
     console.log('Loaded choices:', choices);
   }
-
+  
   function displayChoice(choice) {
     resultDiv.innerHTML = '';
     if (choice.file) {
@@ -50,13 +49,13 @@ document.addEventListener('DOMContentLoaded', function() {
       resultDiv.textContent = choice.text;
     }
   }
-
+  
   function randomChoice() {
     if (choices.length === 0) return null;
     const index = Math.floor(Math.random() * choices.length);
     return choices[index];
   }
-
+  
   function handleShake(event) {
     const now = Date.now();
     if (now - lastShakeTime < 1000) return;
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.removeEventListener('devicemotion', handleShake);
     }
   }
-
+  
   if (typeof DeviceMotionEvent === 'undefined') {
     simulateBtn.style.display = 'block';
     simulateBtn.addEventListener('click', function() {
@@ -85,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     window.addEventListener('devicemotion', handleShake);
   }
-
+  
   loadChoices();
 });
+
