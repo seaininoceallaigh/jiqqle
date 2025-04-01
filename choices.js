@@ -90,10 +90,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 2000);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
+      // Freeze the background animation.
       if (window.crca && window.crca.stop) {
         window.crca.stop();
       }
-      // Show the choices section once loader finishes.
+      // Show the choices section.
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
     }, 4000);
@@ -176,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
       addMoreButton.textContent = 'Add more choices';
       asDiv.appendChild(jiqqleButton);
       asDiv.appendChild(addMoreButton);
-      // Append action state after choices container.
+      // Append action state after choices section.
       document.getElementById('choices-section').appendChild(asDiv);
     }
     asDiv.style.display = 'block';
@@ -199,6 +200,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Action state button listeners.
   document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'jiqqle-button') {
+      // Capture the background snapshot once.
+      const snapshot = window.crca.canvas.toDataURL("image/png");
+      localStorage.setItem('backgroundSnapshot', snapshot);
+      
       // Gather any remaining input data.
       document.querySelectorAll('.choice').forEach(node => {
         const idx = parseInt(node.dataset.index);
@@ -208,6 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
           choiceData[idx] = { text: t, file: f };
         }
       });
+      
+      // Gather all choices from choiceData.
       const allChoices = [];
       for (let key in choiceData) {
         allChoices.push(choiceData[key]);
@@ -216,6 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Please enter at least 2 choices.');
         return;
       }
+      
+      // Save choices and redirect.
       saveChoicesToIndexedDB(allChoices).then(() => {
         // Request DeviceMotion permission if needed.
         if (typeof DeviceMotionEvent !== 'undefined' &&
@@ -241,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // ---------- IndexedDB Functions ----------
+  // ---------------- IndexedDB Functions ----------------
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('jiqqleDB', 1);
