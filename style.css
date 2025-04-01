@@ -21,7 +21,7 @@ body {
   justify-content: center;
   align-items: center;
 }
-/* Ensure the choices section is above the canvas */
+/* Ensure the choices section appears above the canvas */
 #choices-section {
   position: relative;
   z-index: 10;
@@ -79,3 +79,4 @@ canvas {
   left: 0;
   z-index: 1;
 }
+
