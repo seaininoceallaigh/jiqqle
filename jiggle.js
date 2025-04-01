@@ -1,3 +1,4 @@
+// jiggle.js
 document.addEventListener('DOMContentLoaded', function() {
   const jiggleHeading = document.getElementById('jiggle-heading');
   const simulateBtn = document.getElementById('simulate-jiggle');
@@ -72,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // For desktop testing.
   if (typeof DeviceMotionEvent === 'undefined') {
     simulateBtn.style.display = 'block';
     simulateBtn.addEventListener('click', function() {
@@ -88,3 +88,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
   loadChoices();
 });
+
