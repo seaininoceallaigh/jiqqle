@@ -4,10 +4,18 @@
   <meta charset="UTF-8">
   <title>Jiqqle – Choose Options</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Prevent caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="choices-section">
+  <!-- Loader container (opening animation) -->
+  <div class="loader-container"></div>
+
+  <!-- Choice form (hidden until loader finishes) -->
+  <div id="choice-form" style="display:none;">
     <h2 id="choice-instructions" class="fade-in">Enter 2 or more choices</h2>
     <div id="choices-container">
       <!-- Two initial choices -->
@@ -24,6 +32,8 @@
     <!-- This is our Jiqqle button -->
     <button id="jiqqle-button">Jiqqle</button>
   </div>
+  
   <script src="choices.js"></script>
 </body>
 </html>
+
