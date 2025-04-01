@@ -177,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
       addMoreButton.textContent = 'Add more choices';
       asDiv.appendChild(jiqqleButton);
       asDiv.appendChild(addMoreButton);
-      // Append action state after choices section.
       document.getElementById('choices-section').appendChild(asDiv);
     }
     asDiv.style.display = 'block';
@@ -200,46 +199,24 @@ document.addEventListener('DOMContentLoaded', function() {
   // Action state button listeners.
   document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'jiqqle-button') {
-      // Capture the background snapshot once.
-      const snapshot = window.crca.canvas.toDataURL("image/png");
-      localStorage.setItem('backgroundSnapshot', snapshot);
-      
-      // Gather any remaining input data.
-      document.querySelectorAll('.choice').forEach(node => {
-        const idx = parseInt(node.dataset.index);
-        const t = node.querySelector('input[type="text"]').value.trim();
-        const f = node.querySelector('input[type="file"]').files[0] || null;
-        if (t || f) {
-          choiceData[idx] = { text: t, file: f };
-        }
-      });
-      
-      // Gather all choices from choiceData.
-      const allChoices = [];
-      for (let key in choiceData) {
-        allChoices.push(choiceData[key]);
-      }
-      if (allChoices.length < 2) {
-        alert('Please enter at least 2 choices.');
-        return;
-      }
-      
-      // Save choices and redirect.
-      saveChoicesToIndexedDB(allChoices).then(() => {
-        // Request DeviceMotion permission if needed.
-        if (typeof DeviceMotionEvent !== 'undefined' &&
-            typeof DeviceMotionEvent.requestPermission === 'function') {
-          DeviceMotionEvent.requestPermission().then(response => {
-            if (response === 'granted') {
-              window.location.href = 'jiggle.html';
+      // Immediately request motion permission on user gesture.
+      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+        DeviceMotionEvent.requestPermission()
+          .then(response => {
+            if (response === "granted") {
+              proceedWithJiqqle();
             } else {
-              alert('Motion permission is required.');
+              alert("Motion permission is required to continue.");
             }
-          }).catch(console.error);
-        } else {
-          window.location.href = 'jiggle.html';
-        }
-      });
+          })
+          .catch(error => {
+            console.error("Error requesting motion permission:", error);
+            alert("Error requesting motion permission.");
+          });
+      } else {
+        // For browsers that don't require permission.
+        proceedWithJiqqle();
+      }
     }
     if (e.target && e.target.id === 'action-add-more') {
       hideActionState();
@@ -249,6 +226,39 @@ document.addEventListener('DOMContentLoaded', function() {
       newChoice.style.display = 'block';
     }
   });
+  
+  // Function to perform snapshot capture, gather inputs, save choices, then redirect.
+  function proceedWithJiqqle() {
+    // Capture background snapshot.
+    if (window.crca && window.crca.canvas) {
+      const snapshot = window.crca.canvas.toDataURL("image/png");
+      localStorage.setItem('backgroundSnapshot', snapshot);
+    }
+    // Gather remaining input data.
+    document.querySelectorAll('.choice').forEach(node => {
+      const idx = parseInt(node.dataset.index);
+      const t = node.querySelector('input[type="text"]').value.trim();
+      const f = node.querySelector('input[type="file"]').files[0] || null;
+      if (t || f) {
+        choiceData[idx] = { text: t, file: f };
+      }
+    });
+    // Gather all choices.
+    const allChoices = [];
+    for (let key in choiceData) {
+      allChoices.push(choiceData[key]);
+    }
+    if (allChoices.length < 2) {
+      alert('Please enter at least 2 choices.');
+      return;
+    }
+    // Save choices and then redirect.
+    saveChoicesToIndexedDB(allChoices).then(() => {
+      window.location.href = 'jiggle.html';
+    }).catch(error => {
+      console.error("Error saving choices:", error);
+    });
+  }
   
   // ---------------- IndexedDB Functions ----------------
   function openDatabase() {
