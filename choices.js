@@ -1,4 +1,23 @@
-// Add new choice block when "Add More Choice" is clicked
+// Open (or create) the IndexedDB database
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("JiqqleDB", 1);
+    request.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains("choices")) {
+        db.createObjectStore("choices", { keyPath: "id", autoIncrement: true });
+      }
+    };
+    request.onsuccess = function(e) {
+      resolve(e.target.result);
+    };
+    request.onerror = function(e) {
+      reject(e.target.error);
+    };
+  });
+}
+
+// When "Add More Choice" is clicked, add a new choice block
 document.getElementById('add-choice').addEventListener('click', () => {
   const choiceDiv = document.createElement('div');
   choiceDiv.className = 'choice';
@@ -13,36 +32,54 @@ document.getElementById('add-choice').addEventListener('click', () => {
   document.getElementById('choices-container').appendChild(choiceDiv);
 });
 
-// Gather choices and convert any image files to Data URLs
+// Gather choices (convert file inputs to blobs) and store them in IndexedDB
 function gatherChoicesAndRedirect() {
   const choicesElements = Array.from(document.querySelectorAll('.choice'));
-  const choicesPromises = choicesElements.map(choice => {
-    const textInput = choice.querySelector('input[type="text"]');
+  const choicesDataPromises = choicesElements.map(choice => {
+    const text = choice.querySelector('input[type="text"]').value.trim();
     const fileInput = choice.querySelector('input[type="file"]');
     return new Promise(resolve => {
       if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          resolve({ text: textInput.value.trim(), image: e.target.result });
-        };
-        // Ensure the promise resolves even if an error occurs
-        reader.onerror = function() {
-          resolve({ text: textInput.value.trim(), image: null });
-        };
-        reader.readAsDataURL(fileInput.files[0]);
+        // We'll store the file blob directly
+        resolve({ text: text, image: fileInput.files[0] });
       } else {
-        resolve({ text: textInput.value.trim(), image: null });
+        resolve({ text: text, image: null });
       }
     });
   });
   
-  Promise.all(choicesPromises).then(choicesData => {
-    localStorage.setItem('jiqqleChoices', JSON.stringify(choicesData));
-    window.location.href = 'jiggle.html';
+  Promise.all(choicesDataPromises).then(choicesData => {
+    openDB().then(db => {
+      const transaction = db.transaction("choices", "readwrite");
+      const store = transaction.objectStore("choices");
+      // Clear previous choices (if any)
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = function() {
+        let addPromises = choicesData.map(choice => {
+          return new Promise((resolve, reject) => {
+            const addRequest = store.add(choice);
+            addRequest.onsuccess = () => resolve();
+            addRequest.onerror = () => reject(addRequest.error);
+          });
+        });
+        Promise.all(addPromises).then(() => {
+          db.close();
+          window.location.href = "jiggle.html";
+        }).catch(err => {
+          console.error("Error storing choices:", err);
+        });
+      };
+      clearRequest.onerror = function() {
+        console.error("Error clearing old choices.");
+      };
+    }).catch(err => {
+      console.error("Error opening DB:", err);
+    });
   });
 }
 
-// When "Next" is clicked, request motion permission (if needed) and then redirect
+// When "Next" is clicked, request DeviceMotion permission (if needed)
+// then gather choices and redirect.
 document.getElementById('next-button').addEventListener('click', async () => {
   if (
     typeof DeviceMotionEvent !== "undefined" &&
@@ -59,6 +96,5 @@ document.getElementById('next-button').addEventListener('click', async () => {
       return;
     }
   }
-  // If permission is granted or not required, gather choices and redirect
   gatherChoicesAndRedirect();
 });
