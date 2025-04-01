@@ -15,6 +15,8 @@ function CirclesRandomColorAnimation() {
   const w = window.innerWidth, h = window.innerHeight;
   this.canvas.width = w;
   this.canvas.height = h;
+  // Ensure the canvas is behind other elements
+  this.canvas.style.zIndex = 1;
   const ctx = this.canvas.getContext('2d');
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, w, h);
@@ -93,8 +95,8 @@ function displayLoader() {
     if (window.crca && window.crca.stop) {
       window.crca.stop();
     }
-    // Show the choice form.
-    document.getElementById('choice-form').style.display = 'block';
+    // Show the choices section.
+    document.getElementById('choices-section').style.display = 'block';
   }, 4000);
 }
 
@@ -201,4 +203,5 @@ document.getElementById('jiqqle-button').addEventListener('click', function() {
     proceed();
   }
 });
+
 
