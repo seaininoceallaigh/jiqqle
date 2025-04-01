@@ -21,6 +21,11 @@ body {
   justify-content: center;
   align-items: center;
 }
+/* Ensure the choices section is above the canvas */
+#choices-section {
+  position: relative;
+  z-index: 10;
+}
 .choice {
   margin: 10px 0;
 }
