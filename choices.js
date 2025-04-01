@@ -97,6 +97,7 @@ function displayLoader() {
     }
     // Show the choices section.
     document.getElementById('choices-section').style.display = 'block';
+    console.log("Choices section shown");
   }, 4000);
 }
 
