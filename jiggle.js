@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
+const snapshot = localStorage.getItem('backgroundSnapshot');
+if (snapshot) {
+  document.body.style.backgroundImage = `url(${snapshot})`;
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundRepeat = 'no-repeat';
+}
+
+  
   const jiggleHeading = document.getElementById('jiggle-heading');
   const simulateBtn = document.getElementById('simulate-jiggle');
   const resultDiv = document.getElementById('result');
