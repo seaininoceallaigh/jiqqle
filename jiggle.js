@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const resultDiv = document.getElementById('result');
   let choices = [];
   // Increased threshold for less sensitivity.
-  const shakeThreshold = 80;
+  const shakeThreshold = 50;
   let lastShakeTime = 0;
   
   // ---------------- IndexedDB Functions ----------------
