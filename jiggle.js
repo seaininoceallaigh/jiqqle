@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Set background snapshot if available
   const snapshot = localStorage.getItem('backgroundSnapshot');
   if (snapshot) {
     document.body.style.backgroundImage = `url(${snapshot})`;
@@ -10,10 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const simulateBtn = document.getElementById('simulate-jiggle');
   const resultDiv = document.getElementById('result');
   let choices = [];
-  const shakeThreshold = 25;
+  // Increased threshold for less sensitivity.
+  const shakeThreshold = 40;
   let lastShakeTime = 0;
   
-  // IndexedDB functions (unchanged)
+  // ---------------- IndexedDB Functions ----------------
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('jiqqleDB', 1);
@@ -60,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Load choices from IndexedDB
   function getChoices(db) {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['choices'], 'readonly');
@@ -81,32 +82,19 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Loaded choices:', choices);
   }
   
-  function randomChoice() {
-    if (choices.length === 0) return null;
-    const index = Math.floor(Math.random() * choices.length);
-    return choices[index];
+  // ---------------- Background Circles Animation ----------------
+  function getRandomIntInclusive(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // Function to display the final random answer.
-  function displayChoice(choice) {
-    resultDiv.innerHTML = '';
-    if (choice.file) {
-      const img = document.createElement('img');
-      const url = URL.createObjectURL(choice.file);
-      img.src = url;
-      resultDiv.appendChild(img);
-    } else {
-      resultDiv.textContent = choice.text;
-    }
-  }
-  
-  // Circles Animation constructor (same as in index.html)
   function CirclesRandomColorAnimation() {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
     this.canvas.width = w;
     this.canvas.height = h;
-    // Place canvas behind other elements.
+    // Ensure canvas is behind other elements.
     this.canvas.style.position = 'absolute';
     this.canvas.style.top = 0;
     this.canvas.style.left = 0;
@@ -141,14 +129,155 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
   
-  // Helper: random integer inclusive
-  function getRandomIntInclusive(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  // ---------------- Choice Form Functionality ----------------
+  function createChoice(index) {
+    const div = document.createElement('div');
+    div.className = 'choice';
+    div.dataset.index = index;
+    div.style.display = (index === 1) ? 'block' : 'none';
+    
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.placeholder = (index === 1) ? 'choice 1 of at least 2' : 'choice ' + index;
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'next-btn';
+    nextBtn.textContent = '→';
+    nextBtn.addEventListener('click', function() {
+      const textVal = textInput.value.trim();
+      const file = fileInput.files[0] || null;
+      choiceData[index] = { text: textVal, file: file };
+      if (textVal || file) {
+        div.style.display = 'none';
+        if (index === 1) {
+          let choice2 = document.querySelector(`.choice[data-index="2"]`);
+          if (!choice2) {
+            currentChoiceIndex = 2;
+            choice2 = createChoice(2);
+            choicesContainer.appendChild(choice2);
+          }
+          choice2.style.display = 'block';
+        } else {
+          showActionState();
+        }
+      }
+    });
+    
+    div.appendChild(textInput);
+    div.appendChild(fileInput);
+    div.appendChild(nextBtn);
+    
+    if (index > 2) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'X';
+      deleteBtn.addEventListener('click', function() {
+        delete choiceData[index];
+        div.remove();
+        showActionState();
+      });
+      div.appendChild(deleteBtn);
+    }
+    return div;
   }
   
-  // Shake detection handler.
+  function showActionState() {
+    document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
+    let asDiv = document.getElementById('action-state');
+    if (!asDiv) {
+      asDiv = document.createElement('div');
+      asDiv.id = 'action-state';
+      const jiqqleButton = document.createElement('button');
+      jiqqleButton.id = 'jiqqle-button';
+      jiqqleButton.textContent = 'Jiqqle';
+      const addMoreButton = document.createElement('button');
+      addMoreButton.id = 'action-add-more';
+      addMoreButton.textContent = 'Add more choices';
+      asDiv.appendChild(jiqqleButton);
+      asDiv.appendChild(addMoreButton);
+      document.getElementById('choices-section').appendChild(asDiv);
+    }
+    asDiv.style.display = 'block';
+  }
+  
+  function hideActionState() {
+    const asDiv = document.getElementById('action-state');
+    if (asDiv) asDiv.style.display = 'none';
+  }
+  
+  function initChoices() {
+    choicesContainer.innerHTML = '';
+    currentChoiceIndex = 1;
+    hideActionState();
+    const choice1 = createChoice(1);
+    choicesContainer.appendChild(choice1);
+  }
+  
+  // Event listeners for action state buttons.
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'jiqqle-button') {
+      // Immediately request motion permission on user gesture.
+      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+        DeviceMotionEvent.requestPermission()
+          .then(response => {
+            if (response === "granted") {
+              proceedWithJiqqle();
+            } else {
+              alert("Motion permission is required to continue.");
+            }
+          })
+          .catch(error => {
+            console.error("Error requesting motion permission:", error);
+            alert("Error requesting motion permission.");
+          });
+      } else {
+        proceedWithJiqqle();
+      }
+    }
+    if (e.target && e.target.id === 'action-add-more') {
+      hideActionState();
+      currentChoiceIndex++;
+      const newChoice = createChoice(currentChoiceIndex);
+      choicesContainer.appendChild(newChoice);
+      newChoice.style.display = 'block';
+    }
+  });
+  
+  // Function to capture snapshot, gather inputs, save choices, and redirect.
+  function proceedWithJiqqle() {
+    if (window.crca && window.crca.canvas) {
+      const snapshot = window.crca.canvas.toDataURL("image/png");
+      localStorage.setItem('backgroundSnapshot', snapshot);
+    }
+    document.querySelectorAll('.choice').forEach(node => {
+      const idx = parseInt(node.dataset.index);
+      const t = node.querySelector('input[type="text"]').value.trim();
+      const f = node.querySelector('input[type="file"]').files[0] || null;
+      if (t || f) {
+        choiceData[idx] = { text: t, file: f };
+      }
+    });
+    const allChoices = [];
+    for (let key in choiceData) {
+      allChoices.push(choiceData[key]);
+    }
+    if (allChoices.length < 2) {
+      alert('Please enter at least 2 choices.');
+      return;
+    }
+    saveChoicesToIndexedDB(allChoices).then(() => {
+      // Start the jiggle sequence.
+      startJiggleSequence();
+    }).catch(error => {
+      console.error("Error saving choices:", error);
+    });
+  }
+  
+  // Shake detection.
   function handleShake(event) {
     const now = Date.now();
     if (now - lastShakeTime < 1000) return;
@@ -157,16 +286,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (force > shakeThreshold) {
       lastShakeTime = now;
       window.removeEventListener('devicemotion', handleShake);
-      // Proceed with jiggle animation sequence.
       startJiggleSequence();
     }
   }
   
-  // Start the jiggle sequence after shake is detected.
+  // Jiggle sequence: hide old background and heading, start new animation with "Randomizing" flash.
   function startJiggleSequence() {
-    // Hide background snapshot.
+    // Remove old background and heading.
     document.body.style.backgroundImage = 'none';
-    // Hide jiggle heading.
     if (jiggleHeading) {
       jiggleHeading.style.display = 'none';
     }
@@ -174,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start new circles animation.
     window.crca = new CirclesRandomColorAnimation();
     
-    // Create and show "Randomizing" flashing text.
+    // Create flashing "Randomizing" text.
     const randomizingEl = document.createElement('div');
     randomizingEl.id = 'randomizing-text';
     randomizingEl.textContent = 'Randomizing';
@@ -185,11 +312,11 @@ document.addEventListener('DOMContentLoaded', function() {
     randomizingEl.style.fontSize = '2em';
     randomizingEl.style.fontWeight = 'bold';
     randomizingEl.style.zIndex = 20;
-    // Add a simple CSS animation for flashing.
-    randomizingEl.style.animation = 'flash 0.5s linear infinite';
+    // Slower flashing animation (1s cycle)
+    randomizingEl.style.animation = 'flash 1s linear infinite';
     document.body.appendChild(randomizingEl);
     
-    // Define keyframes for flash animation.
+    // Insert keyframes for flash animation.
     const styleEl = document.createElement('style');
     styleEl.textContent = `
       @keyframes flash {
@@ -199,26 +326,27 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(styleEl);
     
-    // After 3 seconds, freeze animation and show random choice.
+    // After 3 seconds, stop animation and show result.
     setTimeout(function() {
       if (window.crca && window.crca.stop) {
         window.crca.stop();
       }
       // Remove the "Randomizing" text.
       randomizingEl.remove();
-      // Get a random choice and display it in the center.
+      // Bring the result div to the front.
+      resultDiv.style.position = 'absolute';
+      resultDiv.style.top = '50%';
+      resultDiv.style.left = '50%';
+      resultDiv.style.transform = 'translate(-50%, -50%)';
+      resultDiv.style.zIndex = 30;
       const choice = randomChoice();
       if (choice) {
-        resultDiv.style.position = 'absolute';
-        resultDiv.style.top = '50%';
-        resultDiv.style.left = '50%';
-        resultDiv.style.transform = 'translate(-50%, -50%)';
         displayChoice(choice);
       }
     }, 3000);
   }
   
-  // For desktop testing: simulate jiggle if DeviceMotionEvent isn't available.
+  // For desktop testing.
   if (typeof DeviceMotionEvent === 'undefined') {
     simulateBtn.style.display = 'block';
     simulateBtn.addEventListener('click', function() {
@@ -228,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('devicemotion', handleShake);
   }
   
+  // Load choices from IndexedDB.
   loadChoices();
+  initChoices();
 });
-
