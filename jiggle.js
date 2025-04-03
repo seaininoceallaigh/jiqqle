@@ -1,18 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Desktop vs mobile check: if no touch support, assume desktop.
-  if (!('ontouchstart' in window)) {
-    const jiggleHeading = document.getElementById('jiggle-heading');
-    jiggleHeading.textContent = "Jiggle your mouse";
-    document.getElementById('simulate-jiggle').style.display = 'block';
-    console.log("Desktop mode: Using mouse simulation.");
+  const snapshot = localStorage.getItem('backgroundSnapshot');
+  if (snapshot) {
+    document.body.style.backgroundImage = `url(${snapshot})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundRepeat = 'no-repeat';
   }
-  
+
+  const jiggleHeading = document.getElementById('jiggle-heading');
+  const simulateBtn = document.getElementById('simulate-jiggle');
   const resultDiv = document.getElementById('result');
+
   let choices = [];
-  const shakeThreshold = 50; // Adjust sensitivity here.
+  const shakeThreshold = 30; // adjust as needed
   let lastShakeTime = 0;
-  
-  // IndexedDB Functions
+
+  // IndexedDB functions for loading choices only
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('jiqqleDB', 1);
@@ -30,35 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     });
   }
-  
-  function clearChoices(db) {
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['choices'], 'readwrite');
-      const store = transaction.objectStore('choices');
-      const request = store.clear();
-      request.onsuccess = () => resolve();
-      request.onerror = e => reject(e.target.error);
-    });
-  }
-  
-  function storeChoice(db, choice) {
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['choices'], 'readwrite');
-      const store = transaction.objectStore('choices');
-      const request = store.add(choice);
-      request.onsuccess = () => resolve();
-      request.onerror = e => reject(e.target.error);
-    });
-  }
-  
-  async function saveChoicesToIndexedDB(choices) {
-    const db = await openDatabase();
-    await clearChoices(db);
-    for (let choice of choices) {
-      await storeChoice(db, choice);
-    }
-  }
-  
+
   function getChoices(db) {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['choices'], 'readonly');
@@ -72,26 +46,26 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     });
   }
-  
+
   async function loadChoices() {
     const db = await openDatabase();
     choices = await getChoices(db);
-    console.log('Loaded choices:', choices);
+    console.log("Loaded choices:", choices);
   }
-  
+
   function randomChoice() {
     if (choices.length === 0) return null;
     const index = Math.floor(Math.random() * choices.length);
     return choices[index];
   }
-  
-  // Background Circles Animation (same as index.html)
+
+  // Circles animation
   function getRandomIntInclusive(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-  
+
   function CirclesRandomColorAnimation() {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -105,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
-    
+
     let animationId;
     const draw = () => {
       animationId = window.requestAnimationFrame(draw);
@@ -130,186 +104,30 @@ document.addEventListener('DOMContentLoaded', function() {
       cancelAnimationFrame(animationId);
     };
   }
-  
-  // Choice Form Functionality
-  const choicesContainer = document.getElementById('choices-container');
-  const choiceData = {};
-  let currentChoiceIndex = 1;
-  
-  function createChoice(index) {
-    const div = document.createElement('div');
-    div.className = 'choice';
-    div.dataset.index = index;
-    div.style.display = (index === 1) ? 'block' : 'none';
-    
-    const textInput = document.createElement('input');
-    textInput.type = 'text';
-    textInput.placeholder = (index === 1) ? 'choice 1 of at least 2' : 'choice ' + index;
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'next-btn';
-    nextBtn.textContent = '→';
-    nextBtn.addEventListener('click', function() {
-      const textVal = textInput.value.trim();
-      const file = fileInput.files[0] || null;
-      choiceData[index] = { text: textVal, file: file };
-      if (textVal || file) {
-        div.style.display = 'none';
-        if (index === 1) {
-          let choice2 = document.querySelector(`.choice[data-index="2"]`);
-          if (!choice2) {
-            currentChoiceIndex = 2;
-            choice2 = createChoice(2);
-            choicesContainer.appendChild(choice2);
-          }
-          choice2.style.display = 'block';
-        } else {
-          showActionState();
-        }
-      }
-    });
-    
-    div.appendChild(textInput);
-    div.appendChild(fileInput);
-    div.appendChild(nextBtn);
-    
-    if (index > 2) {
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.textContent = 'X';
-      deleteBtn.addEventListener('click', function() {
-        delete choiceData[index];
-        div.remove();
-        showActionState();
-      });
-      div.appendChild(deleteBtn);
-    }
-    return div;
-  }
-  
-  function showActionState() {
-    document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
-    let asDiv = document.getElementById('action-state');
-    if (!asDiv) {
-      asDiv = document.createElement('div');
-      asDiv.id = 'action-state';
-      const jiqqleButton = document.createElement('button');
-      jiqqleButton.id = 'jiqqle-button';
-      jiqqleButton.textContent = 'Jiqqle';
-      const addMoreButton = document.createElement('button');
-      addMoreButton.id = 'action-add-more';
-      addMoreButton.textContent = 'Add more choices';
-      asDiv.appendChild(jiqqleButton);
-      asDiv.appendChild(addMoreButton);
-      document.getElementById('choices-section').appendChild(asDiv);
-    }
-    asDiv.style.display = 'block';
-  }
-  
-  function hideActionState() {
-    const asDiv = document.getElementById('action-state');
-    if (asDiv) asDiv.style.display = 'none';
-  }
-  
-  function initChoices() {
-    choicesContainer.innerHTML = '';
-    currentChoiceIndex = 1;
-    hideActionState();
-    const choice1 = createChoice(1);
-    choicesContainer.appendChild(choice1);
-  }
-  
-  // Event listeners for action state buttons.
-  document.addEventListener('click', function(e) {
-    if (e.target && e.target.id === 'jiqqle-button') {
-      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
-        DeviceMotionEvent.requestPermission()
-          .then(response => {
-            if (response === "granted") {
-              proceedWithJiqqle();
-            } else {
-              alert("Motion permission is required to continue.");
-            }
-          })
-          .catch(error => {
-            console.error("Error requesting motion permission:", error);
-            alert("Error requesting motion permission.");
-          });
-      } else {
-        // Desktop: log for debugging.
-        console.log("Desktop mode: Simulating jiggle via button click.");
-        proceedWithJiqqle();
-      }
-    }
-    if (e.target && e.target.id === 'action-add-more') {
-      hideActionState();
-      currentChoiceIndex++;
-      const newChoice = createChoice(currentChoiceIndex);
-      choicesContainer.appendChild(newChoice);
-      newChoice.style.display = 'block';
-    }
-  });
-  
-  // Function to capture snapshot, gather inputs, save choices, then start jiggle sequence.
-  function proceedWithJiqqle() {
-    // Save a snapshot from the current animation.
-    if (window.crca && window.crca.canvas) {
-      const snapshot = window.crca.canvas.toDataURL("image/png");
-      localStorage.setItem('backgroundSnapshot', snapshot);
-    }
-    document.querySelectorAll('.choice').forEach(node => {
-      const idx = parseInt(node.dataset.index);
-      const t = node.querySelector('input[type="text"]').value.trim();
-      const f = node.querySelector('input[type="file"]').files[0] || null;
-      if (t || f) {
-        choiceData[idx] = { text: t, file: f };
-      }
-    });
-    const allChoices = [];
-    for (let key in choiceData) {
-      allChoices.push(choiceData[key]);
-    }
-    if (allChoices.length < 2) {
-      alert('Please enter at least 2 choices.');
-      return;
-    }
-    saveChoicesToIndexedDB(allChoices).then(() => {
-      startJiggleSequence();
-    }).catch(error => {
-      console.error("Error saving choices:", error);
-    });
-  }
-  
-  // Shake detection.
+
+  // Shake detection
   function handleShake(event) {
     const now = Date.now();
     if (now - lastShakeTime < 1000) return;
     const acc = event.accelerationIncludingGravity;
     const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
+    console.log("Detected force:", force);
     if (force > shakeThreshold) {
       lastShakeTime = now;
       window.removeEventListener('devicemotion', handleShake);
       startJiggleSequence();
     }
   }
-  
-  // Jiggle sequence: hide background, start new animation with "Randomizing" flash,
-  // then after 3 seconds, stop animation and show a random answer.
+
   function startJiggleSequence() {
-    // Remove background snapshot and hide jiggle heading.
+    // Hide background + heading
     document.body.style.backgroundImage = 'none';
-    if (jiggleHeading) {
-      jiggleHeading.style.display = 'none';
-    }
-    
-    // Start new circles animation.
+    if (jiggleHeading) jiggleHeading.style.display = 'none';
+
+    // Start new circles animation
     window.crca = new CirclesRandomColorAnimation();
-    
-    // Create flashing "Randomizing" text.
+
+    // Flashing "Randomizing"
     const randomizingEl = document.createElement('div');
     randomizingEl.id = 'randomizing-text';
     randomizingEl.textContent = 'Randomizing';
@@ -320,11 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
     randomizingEl.style.fontSize = '2em';
     randomizingEl.style.fontWeight = 'bold';
     randomizingEl.style.zIndex = 20;
-    // Slower flashing animation: 2s cycle.
     randomizingEl.style.animation = 'flash 2s linear infinite';
     document.body.appendChild(randomizingEl);
-    
-    // Insert keyframes for flash animation.
+
     const styleEl = document.createElement('style');
     styleEl.textContent = `
       @keyframes flash {
@@ -333,9 +149,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     `;
     document.head.appendChild(styleEl);
-    
-    // After 3 seconds, stop animation and show the result.
-    setTimeout(function() {
+
+    // After 3s, stop animation & show random choice
+    setTimeout(() => {
       if (window.crca && window.crca.stop) {
         window.crca.stop();
       }
@@ -345,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
       resultDiv.style.left = '50%';
       resultDiv.style.transform = 'translate(-50%, -50%)';
       resultDiv.style.zIndex = 30;
+
       console.log("Choices array:", choices);
       const choice = randomChoice();
       console.log("Random choice:", choice);
@@ -355,8 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 3000);
   }
-  
-  // Display the chosen answer.
+
   function displayChoice(choice) {
     resultDiv.innerHTML = '';
     if (choice.file) {
@@ -368,20 +184,22 @@ document.addEventListener('DOMContentLoaded', function() {
       resultDiv.textContent = choice.text;
     }
   }
-  
-  // For desktop testing: if DeviceMotionEvent is undefined, add a click listener on simulate button.
+
+  // Desktop testing
+  const simulateBtn = document.getElementById('simulate-jiggle');
   if (typeof DeviceMotionEvent === 'undefined') {
-    const simulateBtn = document.getElementById('simulate-jiggle');
+    // Show button
     simulateBtn.style.display = 'block';
-    simulateBtn.addEventListener('click', function() {
+    simulateBtn.addEventListener('click', () => {
       console.log("Desktop simulate button clicked.");
       startJiggleSequence();
     });
   } else {
+    // Real phone shake
     window.addEventListener('devicemotion', handleShake);
   }
-  
+
   loadChoices();
-  initChoices();
 });
+
 
