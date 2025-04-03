@@ -4,13 +4,14 @@ let choices = [];
 let lastShakeTime = 0;
 const shakeThreshold = 30; // Mobile sensitivity threshold
 
-// For desktop mouse movement detection.
+// Desktop mouse jiggle variables.
 let mouseMoves = 0;
 let lastMousePos = { x: null, y: null };
-const mouseMoveThreshold = 50; // pixels
+let lastMouseVector = null;  // NEW: stores the last movement vector.
+const mouseMoveThreshold = 50; // Minimum distance to consider.
 let mouseTimeout;
 const resetMouseTimeout = 1000; // ms
-const requiredMoves = 4; // Require 4 significant mouse moves
+const requiredMoves = 4; // Require 4 direction changes
 
 // -------------- User Agent Check: Mobile vs Desktop --------------
 function isMobileDevice() {
@@ -127,38 +128,53 @@ function handleShake(event) {
   }
 }
 
-// -------------- Desktop: Mouse Movement Detection --------------
+// -------------- Desktop: Mouse Movement Detection with Direction Change --------------
 function mouseMoveHandler(e) {
   if (lastMousePos.x === null) {
     lastMousePos.x = e.clientX;
     lastMousePos.y = e.clientY;
-    mouseMoves = 1;
-  } else {
-    const dx = e.clientX - lastMousePos.x;
-    const dy = e.clientY - lastMousePos.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance >= mouseMoveThreshold) {
-      mouseMoves++;
-      lastMousePos.x = e.clientX;
-      lastMousePos.y = e.clientY;
-      console.log("Mouse moves count:", mouseMoves);
-      clearTimeout(mouseTimeout);
-      mouseTimeout = setTimeout(() => {
-        mouseMoves = 0;
-      }, resetMouseTimeout);
-      if (mouseMoves >= requiredMoves) {
-        console.log("Desktop mouse movement threshold reached.");
-        document.removeEventListener('mousemove', mouseMoveHandler);
-        startJiggleSequence();
-      }
+    return;
+  }
+  const dx = e.clientX - lastMousePos.x;
+  const dy = e.clientY - lastMousePos.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance < mouseMoveThreshold) return; // not enough movement
+
+  const currentVector = { x: dx, y: dy };
+  let directionChanged = false;
+  if (lastMouseVector) {
+    // Dot product: if negative, direction has reversed.
+    const dot = lastMouseVector.x * currentVector.x + lastMouseVector.y * currentVector.y;
+    if (dot < 0) {
+      directionChanged = true;
     }
+  }
+  // Update lastMouseVector and last position.
+  lastMouseVector = currentVector;
+  lastMousePos.x = e.clientX;
+  lastMousePos.y = e.clientY;
+  
+  if (directionChanged) {
+    mouseMoves++;
+    console.log("Mouse direction change count:", mouseMoves);
+  }
+  
+  clearTimeout(mouseTimeout);
+  mouseTimeout = setTimeout(() => {
+    mouseMoves = 0;
+  }, resetMouseTimeout);
+  
+  if (mouseMoves >= requiredMoves) {
+    console.log("Desktop mouse jiggle threshold reached.");
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    startJiggleSequence();
   }
 }
 
 // -------------- Jiggle Sequence --------------
 function startJiggleSequence() {
   console.log("startJiggleSequence triggered.");
-  // Remove previous background and heading.
+  // Hide old background and heading.
   document.body.style.backgroundImage = 'none';
   if (jiggleHeading) {
     jiggleHeading.style.display = 'none';
@@ -191,7 +207,7 @@ function startJiggleSequence() {
   `;
   document.head.appendChild(styleEl);
   
-  // After 3 seconds, stop animation and show result.
+  // After 3 seconds, stop animation and display result.
   setTimeout(() => {
     console.log("Randomizing finished. Stopping circles and displaying choice.");
     if (window.crca && window.crca.stop) {
@@ -207,7 +223,7 @@ function startJiggleSequence() {
     if (isMobileDevice()) {
       resultDiv.style.fontSize = '3em';
     } else {
-      resultDiv.style.fontSize = '15em'; // <-- This line sets the random answer text size on desktop.
+      resultDiv.style.fontSize = '15em'; // <-- Adjust this value for desktop answer size.
     }
     console.log("Choices array:", choices);
     const choice = randomChoice();
@@ -226,7 +242,6 @@ function displayChoice(choice) {
     const img = document.createElement('img');
     const url = URL.createObjectURL(choice.file);
     img.src = url;
-    // Increase image size on mobile; desktop images can be styled via CSS.
     if (isMobileDevice()) {
       img.style.maxWidth = "90%";
       img.style.height = "auto";
