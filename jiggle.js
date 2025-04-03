@@ -1,15 +1,23 @@
-// Define variables at top-level so all functions can see them.
-let jiggleHeading;
-let simulateBtn;
-let resultDiv;
-
+// Global references for elements and data.
+let jiggleHeading, simulateBtn, resultDiv;
 let choices = [];
 let lastShakeTime = 0;
+const shakeThreshold = 30; // Mobile sensitivity threshold
 
-// Tweak sensitivity as needed
-const shakeThreshold = 30;
+// For desktop mouse movement detection.
+let mouseMoves = 0;
+let lastMousePos = { x: null, y: null };
+const mouseMoveThreshold = 50; // pixels
+let mouseTimeout;
+const resetMouseTimeout = 1000; // ms
+const requiredMoves = 4; // Require 4 significant mouse moves
 
-// --------------- IndexedDB Functions (Load Only) ---------------
+// -------------- User Agent Check: Mobile vs Desktop --------------
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// -------------- IndexedDB Functions (Load Choices Only) --------------
 function openDatabase() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('jiqqleDB', 1);
@@ -33,8 +41,8 @@ function getChoices(db) {
     const transaction = db.transaction(['choices'], 'readonly');
     const store = transaction.objectStore('choices');
     const request = store.getAll();
-    request.onsuccess = function(event) {
-      resolve(event.target.result);
+    request.onsuccess = function(e) {
+      resolve(e.target.result);
     };
     request.onerror = function(e) {
       reject(e.target.error);
@@ -48,18 +56,17 @@ async function loadChoices() {
     choices = await getChoices(db);
     console.log("Loaded choices:", choices);
   } catch (err) {
-    console.error("Error loading choices from IndexedDB:", err);
+    console.error("Error loading choices:", err);
   }
 }
 
-// --------------- Utility for random selection ---------------
 function randomChoice() {
   if (!choices || choices.length === 0) return null;
   const index = Math.floor(Math.random() * choices.length);
   return choices[index];
 }
 
-// --------------- Circles Animation ---------------
+// -------------- Circles Animation --------------
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -100,45 +107,67 @@ function CirclesRandomColorAnimation() {
     }
   };
   window.requestAnimationFrame(draw);
-
   this.stop = function() {
     cancelAnimationFrame(animationId);
   };
 }
 
-// --------------- Shake Detection ---------------
+// -------------- Mobile: Shake Detection --------------
 function handleShake(event) {
   const now = Date.now();
-  // Prevent multiple shakes within 1 second
   if (now - lastShakeTime < 1000) return;
-
   const acc = event.accelerationIncludingGravity;
   const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z - 9.81);
-  console.log("Shake event. Force:", force);
-
+  console.log("Mobile shake detected. Force:", force);
   if (force > shakeThreshold) {
-    console.log("Shake threshold met. Starting jiggle sequence.");
+    console.log("Mobile shake threshold met.");
     lastShakeTime = now;
     window.removeEventListener('devicemotion', handleShake);
     startJiggleSequence();
   }
 }
 
-// --------------- Jiggle Sequence ---------------
+// -------------- Desktop: Mouse Movement Detection --------------
+function mouseMoveHandler(e) {
+  if (lastMousePos.x === null) {
+    lastMousePos.x = e.clientX;
+    lastMousePos.y = e.clientY;
+    mouseMoves = 1;
+  } else {
+    const dx = e.clientX - lastMousePos.x;
+    const dy = e.clientY - lastMousePos.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance >= mouseMoveThreshold) {
+      mouseMoves++;
+      lastMousePos.x = e.clientX;
+      lastMousePos.y = e.clientY;
+      console.log("Mouse moves count:", mouseMoves);
+      clearTimeout(mouseTimeout);
+      mouseTimeout = setTimeout(() => {
+        mouseMoves = 0;
+      }, resetMouseTimeout);
+      if (mouseMoves >= requiredMoves) {
+        console.log("Desktop mouse movement threshold reached.");
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        startJiggleSequence();
+      }
+    }
+  }
+}
+
+// -------------- Jiggle Sequence --------------
 function startJiggleSequence() {
   console.log("startJiggleSequence triggered.");
-
-  // Hide old background
+  // Remove previous background and heading.
   document.body.style.backgroundImage = 'none';
-  // Hide heading if present
   if (jiggleHeading) {
     jiggleHeading.style.display = 'none';
   }
-
-  // Start new circles animation
+  
+  // Start new circles animation.
   window.crca = new CirclesRandomColorAnimation();
-
-  // Create flashing "Randomizing" text
+  
+  // Create flashing "Randomizing" text.
   const randomizingEl = document.createElement('div');
   randomizingEl.id = 'randomizing-text';
   randomizingEl.textContent = 'Randomizing';
@@ -151,8 +180,8 @@ function startJiggleSequence() {
   randomizingEl.style.zIndex = 20;
   randomizingEl.style.animation = 'flash 2s linear infinite';
   document.body.appendChild(randomizingEl);
-
-  // Insert keyframes for flash animation
+  
+  // Insert keyframes for flash animation.
   const styleEl = document.createElement('style');
   styleEl.textContent = `
     @keyframes flash {
@@ -161,21 +190,25 @@ function startJiggleSequence() {
     }
   `;
   document.head.appendChild(styleEl);
-
-  // After 3 seconds, stop animation and show random choice
-  setTimeout(function() {
-    console.log("Randomizing done, stopping circles animation.");
+  
+  // After 3 seconds, stop animation and show result.
+  setTimeout(() => {
+    console.log("Randomizing finished. Stopping circles and displaying choice.");
     if (window.crca && window.crca.stop) {
       window.crca.stop();
     }
     randomizingEl.remove();
-
     resultDiv.style.position = 'absolute';
     resultDiv.style.top = '50%';
     resultDiv.style.left = '50%';
     resultDiv.style.transform = 'translate(-50%, -50%)';
     resultDiv.style.zIndex = 30;
-
+    // Set random answer text size: on mobile 3em, on desktop 15em.
+    if (isMobileDevice()) {
+      resultDiv.style.fontSize = '3em';
+    } else {
+      resultDiv.style.fontSize = '15em'; // <-- This line sets the random answer text size on desktop.
+    }
     console.log("Choices array:", choices);
     const choice = randomChoice();
     console.log("Random choice:", choice);
@@ -187,52 +220,58 @@ function startJiggleSequence() {
   }, 3000);
 }
 
-// Display the chosen answer
 function displayChoice(choice) {
   resultDiv.innerHTML = '';
   if (choice.file) {
     const img = document.createElement('img');
     const url = URL.createObjectURL(choice.file);
     img.src = url;
+    // Increase image size on mobile; desktop images can be styled via CSS.
+    if (isMobileDevice()) {
+      img.style.maxWidth = "90%";
+      img.style.height = "auto";
+    }
     resultDiv.appendChild(img);
   } else {
     resultDiv.textContent = choice.text;
   }
 }
 
-// --------------- DOMContentLoaded ---------------
+// -------------- DOMContentLoaded Setup --------------
 document.addEventListener('DOMContentLoaded', function() {
   console.log("DOM fully loaded. Setting up jiggle page.");
-
-  // Grab references
+  
   jiggleHeading = document.getElementById('jiggle-heading');
   simulateBtn = document.getElementById('simulate-jiggle');
   resultDiv = document.getElementById('result');
-
-  // Load snapshot from localStorage if any
+  
+  // Load snapshot from index.html.
   const snapshot = localStorage.getItem('backgroundSnapshot');
-  console.log("Snapshot from index:", snapshot ? "found" : "none");
+  console.log("Snapshot found:", snapshot ? "Yes" : "No");
   if (snapshot) {
     document.body.style.backgroundImage = `url(${snapshot})`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundRepeat = 'no-repeat';
   }
-
-  // If devicemotion not supported, show "simulate" for desktop
-  if (typeof DeviceMotionEvent === 'undefined') {
-    console.log("DeviceMotionEvent is undefined. Desktop mode. Showing simulate button.");
-    simulateBtn.style.display = 'block';
-    simulateBtn.addEventListener('click', () => {
-      console.log("Desktop simulate button clicked.");
-      startJiggleSequence();
-    });
+  
+  // Set up behavior based on device type.
+  if (isMobileDevice()) {
+    jiggleHeading.textContent = "Jiggle your phone";
+    if (typeof DeviceMotionEvent !== 'undefined') {
+      console.log("Mobile mode: setting up devicemotion listener.");
+      window.addEventListener('devicemotion', handleShake);
+    } else {
+      console.log("Mobile: devicemotion not supported, showing simulate button.");
+      simulateBtn.style.display = 'block';
+      simulateBtn.addEventListener('click', startJiggleSequence);
+    }
   } else {
-    // Real phone
-    console.log("DeviceMotionEvent found. Setting up handleShake listener.");
-    window.addEventListener('devicemotion', handleShake);
+    jiggleHeading.textContent = "Jiggle your mouse";
+    console.log("Desktop mode: enabling mouse move detection.");
+    document.addEventListener('mousemove', mouseMoveHandler);
   }
-
-  // Load choices from IndexedDB
+  
   loadChoices();
 });
+
 
