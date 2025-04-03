@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const resultDiv = document.getElementById('result');
   let choices = [];
   // Increased threshold for less sensitivity.
-  const shakeThreshold = 40;
+  const shakeThreshold = 80;
   let lastShakeTime = 0;
   
   // ---------------- IndexedDB Functions ----------------
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     randomizingEl.style.fontWeight = 'bold';
     randomizingEl.style.zIndex = 20;
     // Slower flashing animation (1s cycle)
-    randomizingEl.style.animation = 'flash 1s linear infinite';
+    randomizingEl.style.animation = 'flash 2s linear infinite';
     document.body.appendChild(randomizingEl);
     
     // Insert keyframes for flash animation.
