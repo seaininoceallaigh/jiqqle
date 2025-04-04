@@ -2,7 +2,7 @@
 let jiggleHeading, simulateBtn, resultDiv, reloadBtn;
 let choices = [];
 let lastShakeTime = 0;
-const shakeThreshold = 50; // Mobile sensitivity threshold
+const shakeThreshold = 40; // Mobile sensitivity threshold
 
 // Desktop mouse jiggle variables.
 let mouseMoves = 0;
