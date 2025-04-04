@@ -1,5 +1,5 @@
 // Global references for elements and data.
-let jiggleHeading, simulateBtn, resultDiv;
+let jiggleHeading, simulateBtn, resultDiv, reloadBtn;
 let choices = [];
 let lastShakeTime = 0;
 const shakeThreshold = 30; // Mobile sensitivity threshold
@@ -7,8 +7,8 @@ const shakeThreshold = 30; // Mobile sensitivity threshold
 // Desktop mouse jiggle variables.
 let mouseMoves = 0;
 let lastMousePos = { x: null, y: null };
-let lastMouseVector = null;  // NEW: stores the last movement vector.
-const mouseMoveThreshold = 50; // Minimum distance to consider.
+let lastMouseVector = null;  // stores the last movement vector.
+const mouseMoveThreshold = 50; // Minimum movement distance in pixels.
 let mouseTimeout;
 const resetMouseTimeout = 1000; // ms
 const requiredMoves = 4; // Require 4 direction changes
@@ -128,7 +128,7 @@ function handleShake(event) {
   }
 }
 
-// -------------- Desktop: Mouse Movement Detection with Direction Change --------------
+// -------------- Desktop: Mouse Movement Detection (Direction Changes) --------------
 function mouseMoveHandler(e) {
   if (lastMousePos.x === null) {
     lastMousePos.x = e.clientX;
@@ -138,18 +138,16 @@ function mouseMoveHandler(e) {
   const dx = e.clientX - lastMousePos.x;
   const dy = e.clientY - lastMousePos.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  if (distance < mouseMoveThreshold) return; // not enough movement
-
+  if (distance < mouseMoveThreshold) return;
+  
   const currentVector = { x: dx, y: dy };
   let directionChanged = false;
   if (lastMouseVector) {
-    // Dot product: if negative, direction has reversed.
     const dot = lastMouseVector.x * currentVector.x + lastMouseVector.y * currentVector.y;
     if (dot < 0) {
       directionChanged = true;
     }
   }
-  // Update lastMouseVector and last position.
   lastMouseVector = currentVector;
   lastMousePos.x = e.clientX;
   lastMousePos.y = e.clientY;
@@ -160,9 +158,7 @@ function mouseMoveHandler(e) {
   }
   
   clearTimeout(mouseTimeout);
-  mouseTimeout = setTimeout(() => {
-    mouseMoves = 0;
-  }, resetMouseTimeout);
+  mouseTimeout = setTimeout(() => { mouseMoves = 0; }, resetMouseTimeout);
   
   if (mouseMoves >= requiredMoves) {
     console.log("Desktop mouse jiggle threshold reached.");
@@ -174,7 +170,7 @@ function mouseMoveHandler(e) {
 // -------------- Jiggle Sequence --------------
 function startJiggleSequence() {
   console.log("startJiggleSequence triggered.");
-  // Hide old background and heading.
+  // Hide the old background and heading.
   document.body.style.backgroundImage = 'none';
   if (jiggleHeading) {
     jiggleHeading.style.display = 'none';
@@ -207,7 +203,7 @@ function startJiggleSequence() {
   `;
   document.head.appendChild(styleEl);
   
-  // After 3 seconds, stop animation and display result.
+  // After 3 seconds, stop the animation and display the random answer.
   setTimeout(() => {
     console.log("Randomizing finished. Stopping circles and displaying choice.");
     if (window.crca && window.crca.stop) {
@@ -223,7 +219,7 @@ function startJiggleSequence() {
     if (isMobileDevice()) {
       resultDiv.style.fontSize = '3em';
     } else {
-      resultDiv.style.fontSize = '15em'; // <-- Adjust this value for desktop answer size.
+      resultDiv.style.fontSize = '15em'; // This line sets desktop random answer text size.
     }
     console.log("Choices array:", choices);
     const choice = randomChoice();
@@ -232,6 +228,10 @@ function startJiggleSequence() {
       displayChoice(choice);
     } else {
       resultDiv.textContent = 'No choice found';
+    }
+    // Show the reload button.
+    if (reloadBtn) {
+      reloadBtn.style.display = 'inline-block';
     }
   }, 3000);
 }
@@ -259,6 +259,15 @@ document.addEventListener('DOMContentLoaded', function() {
   jiggleHeading = document.getElementById('jiggle-heading');
   simulateBtn = document.getElementById('simulate-jiggle');
   resultDiv = document.getElementById('result');
+  reloadBtn = document.getElementById('reload-index');
+  
+  // Add reload button event handler to go back to index.html with a flag.
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', function() {
+      localStorage.setItem('skipOpening', 'true');
+      window.location.href = "index.html";
+    });
+  }
   
   // Load snapshot from index.html.
   const snapshot = localStorage.getItem('backgroundSnapshot');
