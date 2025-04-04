@@ -1,3 +1,18 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+
+  top: 30%;
+position: relative;
+}
+
+
 body {
   margin: 0;
   padding: 0;
@@ -5,6 +20,7 @@ body {
   text-align: center;
   background-color: black;
   color: white;
+
 }
 .fade-in {
   animation: fadeIn 2s ease forwards;
@@ -23,19 +39,49 @@ body {
 }
 /* Ensure the choices section appears above the canvas */
 #choices-section {
-  position: relative;
+  
   z-index: 10;
+
 }
 .choice {
   margin: 10px 0;
 }
-input[type="text"],
-input[type="file"] {
+
+input[type="text"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background-clip: padding-box;
+  width: 500px;          
+  border-radius: 25px;
   display: block;
   margin: 5px auto;
   padding: 10px;
   font-size: 16px;
+  background-color: white;  /* if you want a white background */
 }
+
+@media (max-width: 600px) {
+  input[type="text"] {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background-clip: padding-box;
+    width: 90%;          
+    border-radius: 25px;
+    font-size: 18px;
+    padding: 10px;
+    margin: 10px auto;
+    display: block;
+    background-color: white;
+  }
+}
+
+
 button {
   padding: 10px 20px;
   font-size: 16px;
@@ -79,4 +125,32 @@ canvas {
   left: 0;
   z-index: 1;
 }
+
+#reload-index {
+
+  z-index: 1;
+
+}
+
+.custom-file-label {
+  display: block;       /* Ensures label is on its own line */
+  width: 500px;         /* Or 90% for mobile */
+  border-radius: 25px;
+  padding: 10px;
+  font-size: 16px;
+  text-align: center;
+  background-color: white;
+  color:#757575;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  margin: 10px auto;    /* Centers the label */
+}
+
+@media (max-width: 600px) {
+  .custom-file-label {
+    width: 90%;
+    font-size: 18px;
+  }
+}
+
 
