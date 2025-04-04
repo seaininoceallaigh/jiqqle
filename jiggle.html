@@ -9,15 +9,45 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Center the jiggle section content */
+    #jiggle-section {
+      text-align: center;
+      margin-top: 40px;
+    }
+    /* Ensure result text is centered */
+    #result {
+      text-align: center;
+    }
+    /* Style for the reload button */
+    #reload-index {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2em;
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div id="jiggle-section">
     <h2 id="jiggle-heading" class="jiggle-effect">Jiggle your phone</h2>
-    <!-- For desktop testing, hidden by default -->
+    <!-- For desktop testing -->
     <button id="simulate-jiggle" style="display:none;">Simulate Jiggle</button>
     <div id="result"></div>
+    <!-- Reload button with a reload symbol -->
+    <button id="reload-index" style="background: transparent; border: none; padding: 0; cursor: pointer; background-color: transparent;">
+      <img src="https://thumbs.wbm.im/pw/small/c2ef5dcf52f211a2d1978da4f76c0fec.png" alt="Reload" style="width: 100px; height: 100px; background-color: transparent;">
+    </button>
+    
+    
   </div>
   <script src="jiggle.js"></script>
 </body>
 </html>
+
 
