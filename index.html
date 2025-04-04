@@ -9,20 +9,37 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="style.css">
+  <!-- Inline script to check skip flag -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('skipOpening') === 'true') {
+        // Hide the loader animation.
+        var loader = document.querySelector('.loader-container');
+        if (loader) loader.style.display = 'none';
+        // Show the choices section immediately.
+        var choicesSection = document.getElementById('choices-section');
+        if (choicesSection) choicesSection.style.display = 'block';
+        // Clear the flag so next time the full animation runs.
+        localStorage.removeItem('skipOpening');
+      }
+    });
+  </script>
 </head>
 <body>
   <!-- Loader container (opening animation) -->
   <div class="loader-container"></div>
-
-  <!-- Choices Section (hidden until loader finishes) -->
+  <!-- Choices Section (hidden until loader finishes, unless skipOpening flag is set) -->
+  <div class="wrapper">
   <div id="choices-section" style="display:none;">
-    <h2 id="choice-instructions" class="fade-in">Enter 2 or more choices</h2>
+    <h2 id="choice-instructions" class="fade-in">Enter choices</h2>
     <div id="choices-container"></div>
   </div>
-  
+
+  </div>
   <script src="choices.js"></script>
 </body>
 </html>
+
 
 
 
