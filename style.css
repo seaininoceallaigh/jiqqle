@@ -29,7 +29,7 @@ body {
 @keyframes fadeIn {
   to { opacity: 1; }
 }
-#choices-section, #jiggle-section {
+#choices-section {
   padding: 20px;
   min-height: 100vh;
   display: flex;
