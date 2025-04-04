@@ -190,12 +190,13 @@ document.addEventListener('DOMContentLoaded', function() {
       asDiv.id = 'action-state';
       const jiqqleButton = document.createElement('button');
       jiqqleButton.id = 'jiqqle-button';
-      jiqqleButton.textContent = 'Jiqqle';
+      jiqqleButton.textContent = '→';
       const addMoreButton = document.createElement('button');
       addMoreButton.id = 'action-add-more';
       addMoreButton.textContent = 'Add more choices';
-      asDiv.appendChild(jiqqleButton);
       asDiv.appendChild(addMoreButton);
+      asDiv.appendChild(jiqqleButton);
+      
       document.getElementById('choices-section').appendChild(asDiv);
     }
     asDiv.style.display = 'block';
@@ -328,6 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initChoices();
 });
+
+
 
 
 
