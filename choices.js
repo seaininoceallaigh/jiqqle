@@ -111,11 +111,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const textInput = document.createElement('input');
     textInput.type = 'text';
-    textInput.placeholder = (index === 1) ? 'choice 1 of at least 2' : 'choice ' + index;
+    textInput.placeholder = (index === 1) ? 'Choice 1' : 'Choice ' + index;
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
+    // Give the file input a unique id so the label can refer to it.
+    fileInput.id = 'file-input-' + index;
+    // Hide the default file input.
+    fileInput.style.opacity = '0';
+    fileInput.style.position = 'absolute';
+    fileInput.style.zIndex = '-1';
+    
+    const fileLabel = document.createElement('label');
+    fileLabel.className = 'custom-file-label';
+    fileLabel.setAttribute('for', fileInput.id);
+    fileLabel.textContent = 'Or Choose Image';
+    
+   
+    
     
     const nextBtn = document.createElement('button');
     nextBtn.className = 'next-btn';
@@ -143,7 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     div.appendChild(textInput);
-    div.appendChild(fileInput);
+    setTimeout(() => {
+      textInput.focus();
+    }, 100);
+     // Append the label first, then the hidden file input.
+     div.appendChild(fileLabel);
+     div.appendChild(fileInput);
     div.appendChild(nextBtn);
     
     // For choices beyond 2, add a delete button.
@@ -309,6 +328,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initChoices();
 });
+
+
+
 
 
 
