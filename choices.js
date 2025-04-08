@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 5000);
+    }, 3000);
     // Hide the loader after 5 seconds.
     setTimeout(() => {
       preloaderEl.style.display = 'none';
