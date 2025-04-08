@@ -24,25 +24,26 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
     let animationId;
-    const draw = () => {
-      animationId = window.requestAnimationFrame(draw);
-      if (!draw.frameCount) draw.frameCount = 0;
-      draw.frameCount++;
-      if (draw.frameCount % 10 === 1) {
-        const r = getRandomIntInclusive(0, 255);
-        const g = getRandomIntInclusive(0, 255);
-        const b = getRandomIntInclusive(0, 255);
-        const x = getRandomIntInclusive(0, w);
-        const y = getRandomIntInclusive(0, h);
-        const a = getRandomIntInclusive(0, 255);
-        const radius = getRandomIntInclusive(10, 100);
-        ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    };
-    window.requestAnimationFrame(draw);
+const draw = () => {
+  animationId = window.requestAnimationFrame(draw);
+  if (!draw.frameCount) draw.frameCount = 0;
+  draw.frameCount++;
+  if (draw.frameCount % 10 === 1) {    // <— This is what you change
+    const r = getRandomIntInclusive(0, 255);
+    const g = getRandomIntInclusive(0, 255);
+    const b = getRandomIntInclusive(0, 255);
+    const x = getRandomIntInclusive(0, w);
+    const y = getRandomIntInclusive(0, h);
+    const a = getRandomIntInclusive(0, 255);
+    const radius = getRandomIntInclusive(10, 100);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
+window.requestAnimationFrame(draw);
+
     this.stop = function() {
       cancelAnimationFrame(animationId);
     };
