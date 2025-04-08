@@ -23,12 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
-    let animationId;
-const draw = () => {
-  animationId = window.requestAnimationFrame(draw);
-  if (!draw.frameCount) draw.frameCount = 0;
-  draw.frameCount++;
-  if (draw.frameCount % 10 === 1) {    // <— This is what you change
+   let animationId;
+let lastDrawTime = 0;
+const draw = (timestamp) => {
+  if (timestamp - lastDrawTime > 100) {  // Adjust 100ms to your desired delay
+    lastDrawTime = timestamp;
     const r = getRandomIntInclusive(0, 255);
     const g = getRandomIntInclusive(0, 255);
     const b = getRandomIntInclusive(0, 255);
@@ -41,9 +40,9 @@ const draw = () => {
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
   }
+  animationId = window.requestAnimationFrame(draw);
 };
 window.requestAnimationFrame(draw);
-
     this.stop = function() {
       cancelAnimationFrame(animationId);
     };
