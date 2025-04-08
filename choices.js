@@ -23,26 +23,27 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
-   let animationId;
-let lastDrawTime = 0;
-const draw = (timestamp) => {
-  if (timestamp - lastDrawTime > 100) {  // Adjust 100ms to your desired delay
-    lastDrawTime = timestamp;
-    const r = getRandomIntInclusive(0, 255);
-    const g = getRandomIntInclusive(0, 255);
-    const b = getRandomIntInclusive(0, 255);
-    const x = getRandomIntInclusive(0, w);
-    const y = getRandomIntInclusive(0, h);
-    const a = getRandomIntInclusive(0, 255);
-    const radius = getRandomIntInclusive(10, 100);
-    ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  animationId = window.requestAnimationFrame(draw);
-};
-window.requestAnimationFrame(draw);
+    let animationId;
+    let lastDrawTime = 0;
+    const draw = (timestamp) => {
+      animationId = window.requestAnimationFrame(draw);
+      if (timestamp - lastDrawTime > 100) {  // Adjust 100ms to desired delay
+        lastDrawTime = timestamp;
+        const r = getRandomIntInclusive(0, 255);
+        const g = getRandomIntInclusive(0, 255);
+        const b = getRandomIntInclusive(0, 255);
+        const x = getRandomIntInclusive(0, w);
+        const y = getRandomIntInclusive(0, h);
+        const a = getRandomIntInclusive(0, 255);
+        const radius = getRandomIntInclusive(10, 100);
+        ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+    window.requestAnimationFrame(draw);
+    
     this.stop = function() {
       cancelAnimationFrame(animationId);
     };
@@ -69,7 +70,8 @@ window.requestAnimationFrame(draw);
   
   function displayWord(arr, container) {
     arr.forEach(word => displayLetter(word, container));
-    requestAnimationFrame(() => { orderLetters(); });
+    // Small delay before ordering so letters are visible.
+    setTimeout(orderLetters, 50);
   }
   
   function orderLetters() {
@@ -83,21 +85,21 @@ window.requestAnimationFrame(draw);
     preloaderEl.innerHTML = '';
     counter = 0;
     displayWord(firstWordArr, preloaderEl);
+    // Show the first sentence for 3 seconds before switching.
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 2000);
+    }, 3000);
+    // Hide the loader after 5 seconds.
     setTimeout(() => {
       preloaderEl.style.display = 'none';
-      // Freeze the background animation.
       if (window.crca && window.crca.stop) {
         window.crca.stop();
       }
-      // Show the choices section.
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 4000);
+    }, 5000);
   }
   displayLoader();
   
@@ -116,9 +118,7 @@ window.requestAnimationFrame(draw);
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
-    // Give the file input a unique id so the label can refer to it.
     fileInput.id = 'file-input-' + index;
-    // Hide the default file input.
     fileInput.style.opacity = '0';
     fileInput.style.position = 'absolute';
     fileInput.style.zIndex = '-1';
@@ -127,9 +127,6 @@ window.requestAnimationFrame(draw);
     fileLabel.className = 'custom-file-label';
     fileLabel.setAttribute('for', fileInput.id);
     fileLabel.textContent = 'Or Choose Image';
-    
-   
-    
     
     const nextBtn = document.createElement('button');
     nextBtn.className = 'next-btn';
@@ -160,9 +157,8 @@ window.requestAnimationFrame(draw);
     setTimeout(() => {
       textInput.focus();
     }, 100);
-     // Append the label first, then the hidden file input.
-     div.appendChild(fileLabel);
-     div.appendChild(fileInput);
+    div.appendChild(fileLabel);
+    div.appendChild(fileInput);
     div.appendChild(nextBtn);
     
     // For choices beyond 2, add a delete button.
@@ -182,7 +178,6 @@ window.requestAnimationFrame(draw);
   
   // Create or show the action state with two buttons.
   function showActionState() {
-    // Hide all choice inputs.
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
     let asDiv = document.getElementById('action-state');
     if (!asDiv) {
@@ -219,7 +214,6 @@ window.requestAnimationFrame(draw);
   // Action state button listeners.
   document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'jiqqle-button') {
-      // Immediately request motion permission on user gesture.
       if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
         DeviceMotionEvent.requestPermission()
           .then(response => {
@@ -234,7 +228,6 @@ window.requestAnimationFrame(draw);
             alert("Error requesting motion permission.");
           });
       } else {
-        // For browsers that don't require permission.
         proceedWithJiqqle();
       }
     }
@@ -249,12 +242,10 @@ window.requestAnimationFrame(draw);
   
   // Function to perform snapshot capture, gather inputs, save choices, then redirect.
   function proceedWithJiqqle() {
-    // Capture background snapshot.
     if (window.crca && window.crca.canvas) {
       const snapshot = window.crca.canvas.toDataURL("image/png");
       localStorage.setItem('backgroundSnapshot', snapshot);
     }
-    // Gather remaining input data.
     document.querySelectorAll('.choice').forEach(node => {
       const idx = parseInt(node.dataset.index);
       const t = node.querySelector('input[type="text"]').value.trim();
@@ -263,7 +254,6 @@ window.requestAnimationFrame(draw);
         choiceData[idx] = { text: t, file: f };
       }
     });
-    // Gather all choices.
     const allChoices = [];
     for (let key in choiceData) {
       allChoices.push(choiceData[key]);
@@ -272,7 +262,6 @@ window.requestAnimationFrame(draw);
       alert('Please enter at least 2 choices.');
       return;
     }
-    // Save choices and then redirect.
     saveChoicesToIndexedDB(allChoices).then(() => {
       window.location.href = 'jiggle.html';
     }).catch(error => {
@@ -329,6 +318,7 @@ window.requestAnimationFrame(draw);
   
   initChoices();
 });
+
 
 
 
