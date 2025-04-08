@@ -13,16 +13,16 @@
   <!-- Inline script to check skip flag -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      if (localStorage.getItem('skipOpening') === 'true') {
+  //    if (localStorage.getItem('skipOpening') === 'true') {
         // Hide the loader animation.
-        var loader = document.querySelector('.loader-container');
-        if (loader) loader.style.display = 'none';
+ //       var loader = document.querySelector('.loader-container');
+ //       if (loader) loader.style.display = 'none';
         // Show the choices section immediately.
-        var choicesSection = document.getElementById('choices-section');
-        if (choicesSection) choicesSection.style.display = 'block';
+ //       var choicesSection = document.getElementById('choices-section');
+ //       if (choicesSection) choicesSection.style.display = 'block';
         // Clear the flag so next time the full animation runs.
-        localStorage.removeItem('skipOpening');
-      }
+  //      localStorage.removeItem('skipOpening');
+   //   }
     });
   </script>
 </head>
