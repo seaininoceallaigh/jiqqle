@@ -4,12 +4,20 @@
   <meta charset="UTF-8">
   <title>Jiqqle – Choose Options</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+  
   <!-- Prevent caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Clear the skipOpening flag if not coming from jiggle.html -->
+  <script>
+    // If the referrer does not include "jiggle.html", then clear skipOpening.
+    if (!document.referrer.includes("jiggle.html")) {
+      localStorage.removeItem('skipOpening');
+    }
+  </script>
   <script src="choices.js?ts=20250403"></script>
 </head>
 <body>
@@ -24,6 +32,7 @@
   </div>
 </body>
 </html>
+
 
 
 
