@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Ensure no skip flag interferes
-  localStorage.removeItem('skipOpening');
+  // Check if we're coming back with the skip flag (set by jiggle.html’s reload button)
+  const skipOpening = localStorage.getItem('skipOpening') === 'true';
 
-  // Declare variables for the choices functionality.
+  // Declare variables for choices functionality.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // Modified animation that accepts a callback (loaderCallback) invoked after 2 seconds.
+  // Modified animation accepts a callback to trigger the loader after 2 seconds,
+  // but only if we're not skipping the opening.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -34,8 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // After 2 seconds of animation, trigger the loader callback once.
-      if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
+      // If not skipping, trigger the loader callback after 2 seconds.
+      if (!this.loaderTriggered && !skipOpening && (timestamp - this.startTime) >= 2000) {
         this.loaderTriggered = true;
         if (loaderCallback) loaderCallback();
       }
@@ -62,7 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
       cancelAnimationFrame(this.animationId);
     };
   }
-  // Instantiate the circles animation and pass displayLoader as the callback.
+  
+  // Instantiate the circles animation.
+  // When not skipping, displayLoader will be called by the animation after 2 seconds.
   window.crca = new CirclesRandomColorAnimation(displayLoader);
 
   // ---------------- Loader Animation ----------------
@@ -95,19 +98,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // displayLoader is now called by the circles animation after 2 seconds.
-  // It displays the first sentence for 2 seconds, then replaces it with the second sentence,
-  // and after a total of 4 seconds hides the loader.
+  // displayLoader checks the skip flag.
   function displayLoader() {
+    // If skipping, clear the flag and run a minimal loader (or none).
+    if (skipOpening) {
+      localStorage.removeItem('skipOpening');
+      // Minimal loader: wait 2 seconds then show the choices.
+      setTimeout(() => {
+        preloaderEl.style.display = 'none';
+        if (window.crca && window.crca.stop) {
+          window.crca.stop();
+        }
+        document.getElementById('choices-section').style.display = 'block';
+        initChoices();
+      }, 2000);
+      return;
+    }
+    // Otherwise, run the full loader animation:
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
     displayWord(firstWordArr, preloaderEl);
+    // Show first sentence for 2 seconds.
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
     }, 2000);
+    // Total loader duration of 4 seconds.
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -166,7 +184,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     div.appendChild(textInput);
-    setTimeout(() => { textInput.focus(); }, 100);
+    setTimeout(() => {
+      textInput.focus();
+    }, 100);
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
     div.appendChild(nextBtn);
@@ -320,6 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Initialize the choices form.
   initChoices();
 });
 
