@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if the skip flag is set (for example when returning from jiggle.html)
+  // Check if the skip flag is set (e.g. when returning from jiggle.html)
   const skipOpening = localStorage.getItem('skipOpening') === 'true';
 
   // Declare variables for the choices functionality.
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // The circles animation accepts a callback that will be triggered after 2 seconds.
+  // Circles animation accepts a loader callback triggered after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // Always trigger the loader callback after 2 seconds.
+      // Always trigger loader callback after 2 seconds.
       if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
         this.loaderTriggered = true;
         if (loaderCallback) loaderCallback();
@@ -93,21 +93,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Full loader (for fresh URL typing): Shows first sentence for ~2 seconds,
-  // then second sentence for ~2 seconds, then hides loader.
+  // fullLoader displays text sentences (full loading) for fresh loads.
   function fullLoader() {
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
-    // Extra short delay ensures rendering.
-    setTimeout(() => {
-      displayWord(firstWordArr, preloaderEl);
-    }, 100);
+    // Force a layout reflow to ensure the element is ready.
+    void preloaderEl.offsetWidth;
+    displayWord(firstWordArr, preloaderEl);
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 2100);
+    }, 2000);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -115,11 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 4100);
+    }, 4000);
   }
   
-  // Minimal loader (for returning from jiggle.html): No text shown;
-  // Wait 2 seconds then hide loader.
+  // minimalLoader displays no text, for returning from jiggle.html.
   function minimalLoader() {
     setTimeout(() => {
       if (window.crca && window.crca.stop) {
@@ -130,10 +127,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 2000);
   }
   
-  // Choose the appropriate loader callback.
+  // Select loader callback based on the skip flag.
   const loaderCallback = skipOpening ? minimalLoader : fullLoader;
   
-  // Create the circles animation; it will call loaderCallback after 2 seconds.
+  // Instantiate the circles animation; its callback fires after 2 seconds.
   window.crca = new CirclesRandomColorAnimation(loaderCallback);
   
   // ---------------- Choice Form Functionality ----------------
@@ -341,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
