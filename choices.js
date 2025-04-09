@@ -2,21 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Ensure no skip flag interferes
   localStorage.removeItem('skipOpening');
 
-  // Record when the DOM is ready.
-  const loadStart = Date.now();
-
-  // When the window finishes loading, calculate how long to wait before starting the loader.
-  window.onload = function() {
-    const elapsed = Date.now() - loadStart;
-    const navEntries = performance.getEntriesByType("navigation");
-    const navType = navEntries.length > 0 ? navEntries[0].type : '';
-    // Use 2000ms if reloaded, otherwise 4000ms.
-    const minimumDelay = navType === "reload" ? 2000 : 4000;
-    const waitTime = Math.max(minimumDelay - elapsed, 0);
-    setTimeout(displayLoader, waitTime);
-  };
-
-  // Declare your variables for choices.
+  // Declare variables for the choices functionality.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -28,7 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  function CirclesRandomColorAnimation() {
+  // Modified animation that accepts a callback (loaderCallback) invoked after 2 seconds.
+  function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
     this.canvas.width = w;
@@ -40,9 +27,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
     this.running = true;
+    this.startTime = null;
+    this.loaderTriggered = false;
     let lastDrawTime = 0;
     const draw = (timestamp) => {
-      if (!this.running) return;
+      if (!this.startTime) {
+        this.startTime = timestamp;
+      }
+      // After 2 seconds of animation, trigger the loader callback once.
+      if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
+        this.loaderTriggered = true;
+        if (loaderCallback) loaderCallback();
+      }
       if (timestamp - lastDrawTime > 100) {  // 100ms delay between draws
         lastDrawTime = timestamp;
         const r = getRandomIntInclusive(0, 255);
@@ -66,7 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
       cancelAnimationFrame(this.animationId);
     };
   }
-  window.crca = new CirclesRandomColorAnimation();
+  // Instantiate the circles animation and pass displayLoader as the callback.
+  window.crca = new CirclesRandomColorAnimation(displayLoader);
 
   // ---------------- Loader Animation ----------------
   const preloaderEl = document.querySelector('.loader-container');
@@ -98,15 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // In displayLoader(), tie the duration to whether the page was reloaded.
+  // displayLoader is now called by the circles animation after 2 seconds.
+  // It displays the first sentence for 2 seconds, then replaces it with the second sentence,
+  // and after a total of 4 seconds hides the loader.
   function displayLoader() {
-    const navEntries = performance.getEntriesByType("navigation");
-    const navType = navEntries.length > 0 ? navEntries[0].type : '';
-    // Duration for first sentence: 2000ms if reloaded, 4000ms otherwise.
-    const firstSentenceDuration = navType === "reload" ? 2000 : 4000;
-    // Total duration of the loader: 4000ms if reloaded, 6000ms otherwise.
-    const totalLoaderDuration = navType === "reload" ? 4000 : 6000;
-
+    preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
     displayWord(firstWordArr, preloaderEl);
@@ -114,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, firstSentenceDuration);
+    }, 2000);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -122,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, totalLoaderDuration);
+    }, 4000);
   }
   
   // ---------------- Choice Form Functionality ----------------
@@ -173,9 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     div.appendChild(textInput);
-    setTimeout(() => {
-      textInput.focus();
-    }, 100);
+    setTimeout(() => { textInput.focus(); }, 100);
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
     div.appendChild(nextBtn);
@@ -331,3 +322,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initChoices();
 });
+
