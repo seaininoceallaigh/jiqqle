@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Ensure no skip flag interferes
+  localStorage.removeItem('skipOpening');
+
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -15,18 +18,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const w = window.innerWidth, h = window.innerHeight;
     this.canvas.width = w;
     this.canvas.height = h;
-    // Place canvas behind other elements.
     this.canvas.style.zIndex = 1;
     const ctx = this.canvas.getContext('2d');
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
-    // Use a flag so we can safely stop the animation.
     this.running = true;
     let lastDrawTime = 0;
     const draw = (timestamp) => {
-      if (!this.running) return; // Stop when running is false.
+      if (!this.running) return;
       if (timestamp - lastDrawTime > 100) {  // 100ms delay between draws
         lastDrawTime = timestamp;
         const r = getRandomIntInclusive(0, 255);
@@ -72,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function displayWord(arr, container) {
     arr.forEach(word => displayLetter(word, container));
-    // Delay a short time so letters can animate in.
     setTimeout(orderLetters, 50);
   }
   
@@ -83,19 +83,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Adjusted timings: first sentence stays for 4000ms, then second for 2000ms.
+  // Timing: show first sentence for 4000ms, then second sentence, finish at 6000ms.
   function displayLoader() {
     preloaderEl.innerHTML = '';
     counter = 0;
-    // Show first sentence.
     displayWord(firstWordArr, preloaderEl);
-    // After 4000ms, clear and show second sentence.
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
     }, 4000);
-    // After 6000ms total, hide loader and stop the circles.
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
