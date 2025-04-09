@@ -113,10 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
       initChoices();
     }, 6000);
   }
-  window.onload = function() {
-  displayLoader();
-};
-
   
   // ---------------- Choice Form Functionality ----------------
   function createChoice(index) {
@@ -221,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'jiqqle-button') {
-      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+      if (typeof DeviceMotionEvent !== "undefined" &&
+          typeof DeviceMotionEvent.requestPermission === "function") {
         DeviceMotionEvent.requestPermission()
           .then(response => {
             if (response === "granted") {
@@ -323,13 +320,3 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initChoices();
 });
-
-
-
-
-
-
-
-
-
-
