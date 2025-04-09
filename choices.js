@@ -102,7 +102,10 @@ document.addEventListener('DOMContentLoaded', function() {
       initChoices();
     }, 6000);
   }
+  window.onload = function() {
   displayLoader();
+};
+
   
   // ---------------- Choice Form Functionality ----------------
   function createChoice(index) {
