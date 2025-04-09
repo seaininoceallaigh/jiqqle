@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if the skip flag is set (e.g. when coming back from jiggle.html)
+  // Check if the skip flag is set (for example when returning from jiggle.html)
   const skipOpening = localStorage.getItem('skipOpening') === 'true';
 
-  // Declare variables for choice functionality.
+  // Declare variables for the choices functionality.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -14,9 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // The circles animation now accepts a callback.
-  // It will trigger the callback after 2 seconds—if we're not skipping.
-  // (If skipping, we’ll use a minimal loader function defined below.)
+  // The circles animation now accepts a callback that will be invoked after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -36,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // Only trigger the loader callback after 2 seconds if we're doing the full loader.
-      if (!this.loaderTriggered && !skipOpening && (timestamp - this.startTime) >= 2000) {
+      // Always trigger the loader callback after 2 seconds.
+      if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
         this.loaderTriggered = true;
         if (loaderCallback) loaderCallback();
       }
@@ -95,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // The full loader shows text: first sentence for 2 sec, then second sentence for 2 sec.
+  // Full loader: shows two text sentences (2 seconds each)
   function fullLoader() {
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
@@ -116,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 4000);
   }
   
-  // The minimal loader (for returning from jiggle.html) skips text and waits 2 sec.
+  // Minimal loader: no text sentences, 2-second delay before showing choices.
   function minimalLoader() {
     setTimeout(() => {
       if (window.crca && window.crca.stop) {
@@ -128,7 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Choose the loader callback based on the skip flag.
-  let loaderCallback = skipOpening ? minimalLoader : fullLoader;
+  const loaderCallback = skipOpening ? minimalLoader : fullLoader;
+  
+  // Create the circles animation; it will call loaderCallback after 2 seconds.
   window.crca = new CirclesRandomColorAnimation(loaderCallback);
   
   // ---------------- Choice Form Functionality ----------------
@@ -336,5 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
