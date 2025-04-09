@@ -25,7 +25,12 @@
       }
     });
   </script>
-  <script src="choices.js?ts=20250409"></script>
+  <script>
+  var script = document.createElement('script');
+  script.src = "choices.js?ts=" + new Date().getTime();
+  document.head.appendChild(script);
+</script>
+
 </head>
 <body>
   <!-- Loader container (opening animation) -->
