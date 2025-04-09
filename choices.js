@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const navEntries = performance.getEntriesByType("navigation");
     const navType = navEntries.length > 0 ? navEntries[0].type : '';
     // Use 2000ms if reloaded, otherwise 4000ms.
-    const minimumDelay = navType === "reload" ? 1000 : 2000;
+    const minimumDelay = navType === "reload" ? 2000 : 4000;
     const waitTime = Math.max(minimumDelay - elapsed, 0);
     setTimeout(displayLoader, waitTime);
   };
