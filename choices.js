@@ -5,14 +5,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // Record when the DOM is ready.
   const loadStart = Date.now();
 
+  // When the window finishes loading, calculate how long to wait before starting the loader.
   window.onload = function() {
     const elapsed = Date.now() - loadStart;
-    // Force a minimum delay of 4000ms before starting the loader.
-    const waitTime = Math.max(4000 - elapsed, 0);
+    const navEntries = performance.getEntriesByType("navigation");
+    const navType = navEntries.length > 0 ? navEntries[0].type : '';
+    // Use 2000ms if reloaded, otherwise 4000ms.
+    const minimumDelay = navType === "reload" ? 2000 : 4000;
+    const waitTime = Math.max(minimumDelay - elapsed, 0);
     setTimeout(displayLoader, waitTime);
   };
 
-  // Now declare your variables once
+  // Declare your variables for choices.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -63,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
   window.crca = new CirclesRandomColorAnimation();
-  
+
   // ---------------- Loader Animation ----------------
   const preloaderEl = document.querySelector('.loader-container');
   const firstWordArr = ["Don't", "know", "what", "to", "do?"];
@@ -94,8 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Timing: show first sentence for 4000ms, then second sentence, finish at 6000ms.
+  // In displayLoader(), tie the duration to whether the page was reloaded.
   function displayLoader() {
+    const navEntries = performance.getEntriesByType("navigation");
+    const navType = navEntries.length > 0 ? navEntries[0].type : '';
+    // Duration for first sentence: 2000ms if reloaded, 4000ms otherwise.
+    const firstSentenceDuration = navType === "reload" ? 2000 : 4000;
+    // Total duration of the loader: 4000ms if reloaded, 6000ms otherwise.
+    const totalLoaderDuration = navType === "reload" ? 4000 : 6000;
+
     preloaderEl.innerHTML = '';
     counter = 0;
     displayWord(firstWordArr, preloaderEl);
@@ -103,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 4000);
+    }, firstSentenceDuration);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -111,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 6000);
+    }, totalLoaderDuration);
   }
   
   // ---------------- Choice Form Functionality ----------------
