@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 500);
+    }, 100);
   }
   
   // Select the appropriate loader callback based on the skip flag.
