@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.startTime = timestamp;
       }
       // Trigger loader callback after 2 seconds.
-      if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
+      if (!this.loaderTriggered && (timestamp - this.startTime) >= 1000) {
         this.loaderTriggered = true;
         console.log("Loader callback triggered at:", timestamp);
         if (loaderCallback) loaderCallback();
