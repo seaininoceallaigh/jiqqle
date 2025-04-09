@@ -2,6 +2,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Ensure no skip flag interferes
   localStorage.removeItem('skipOpening');
 
+  // Record when the DOM is ready.
+  const loadStart = Date.now();
+
+  window.onload = function() {
+    const elapsed = Date.now() - loadStart;
+    // Force a minimum delay of 4000ms before starting the loader.
+    const waitTime = Math.max(4000 - elapsed, 0);
+    setTimeout(displayLoader, waitTime);
+  };
+
+  // Now declare your variables once
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
