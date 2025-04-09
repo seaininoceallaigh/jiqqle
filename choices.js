@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
       asDiv.id = 'action-state';
       const jiqqleButton = document.createElement('button');
       jiqqleButton.id = 'jiqqle-button';
-      jiqqleButton.textContent = '→';
+      jiqqleButton.textContent = 'Take your chances';
       const addMoreButton = document.createElement('button');
       addMoreButton.id = 'action-add-more';
       addMoreButton.textContent = 'Add more choices';
