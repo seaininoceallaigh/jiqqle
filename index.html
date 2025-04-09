@@ -37,7 +37,12 @@
   </div>
 
   </div>
-  <script src="choices.js"></script>
+  <script>
+  var script = document.createElement('script');
+  script.src = "choices.js?ts=" + new Date().getTime();
+  document.body.appendChild(script);
+</script>
+
 </body>
 </html>
 
