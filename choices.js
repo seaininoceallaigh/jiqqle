@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
   const choicesContainer = document.getElementById('choices-container');
-  // Global object to hold choice values.
   const choiceData = {};
   let currentChoiceIndex = 1;
 
@@ -23,11 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
     
-    let animationId;
+    // Use a flag so we can safely stop the animation.
+    this.running = true;
     let lastDrawTime = 0;
     const draw = (timestamp) => {
-      animationId = window.requestAnimationFrame(draw);
-      if (timestamp - lastDrawTime > 100) {  // Adjust 100ms to desired delay
+      if (!this.running) return; // Stop when running is false.
+      if (timestamp - lastDrawTime > 100) {  // 100ms delay between draws
         lastDrawTime = timestamp;
         const r = getRandomIntInclusive(0, 255);
         const g = getRandomIntInclusive(0, 255);
@@ -41,11 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
       }
+      this.animationId = window.requestAnimationFrame(draw);
     };
-    window.requestAnimationFrame(draw);
+    this.animationId = window.requestAnimationFrame(draw);
     
     this.stop = function() {
-      cancelAnimationFrame(animationId);
+      this.running = false;
+      cancelAnimationFrame(this.animationId);
     };
   }
   window.crca = new CirclesRandomColorAnimation();
@@ -70,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function displayWord(arr, container) {
     arr.forEach(word => displayLetter(word, container));
-    // Small delay before ordering so letters are visible.
+    // Delay a short time so letters can animate in.
     setTimeout(orderLetters, 50);
   }
   
@@ -81,17 +83,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Adjusted timings: first sentence stays for 4000ms, then second for 2000ms.
   function displayLoader() {
     preloaderEl.innerHTML = '';
     counter = 0;
+    // Show first sentence.
     displayWord(firstWordArr, preloaderEl);
-    // Show the first sentence for 3 seconds before switching.
+    // After 4000ms, clear and show second sentence.
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 3000);
-    // Hide the loader after 5 seconds.
+    }, 4000);
+    // After 6000ms total, hide loader and stop the circles.
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -99,12 +103,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 5000);
+    }, 6000);
   }
   displayLoader();
   
   // ---------------- Choice Form Functionality ----------------
-  // Create a single choice element with a next arrow.
   function createChoice(index) {
     const div = document.createElement('div');
     div.className = 'choice';
@@ -138,7 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (textVal || file) {
         div.style.display = 'none';
         if (index === 1) {
-          // For choice 1, create and show choice 2.
           let choice2 = document.querySelector(`.choice[data-index="2"]`);
           if (!choice2) {
             currentChoiceIndex = 2;
@@ -147,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           choice2.style.display = 'block';
         } else {
-          // For choice 2 and beyond, hide inputs and show action state.
           showActionState();
         }
       }
@@ -161,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
     div.appendChild(fileInput);
     div.appendChild(nextBtn);
     
-    // For choices beyond 2, add a delete button.
     if (index > 2) {
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete-btn';
@@ -176,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return div;
   }
   
-  // Create or show the action state with two buttons.
   function showActionState() {
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
     let asDiv = document.getElementById('action-state');
@@ -191,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
       addMoreButton.textContent = 'Add more choices';
       asDiv.appendChild(addMoreButton);
       asDiv.appendChild(jiqqleButton);
-      
       document.getElementById('choices-section').appendChild(asDiv);
     }
     asDiv.style.display = 'block';
@@ -202,7 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (asDiv) asDiv.style.display = 'none';
   }
   
-  // Initialize choices by showing only choice 1.
   function initChoices() {
     choicesContainer.innerHTML = '';
     currentChoiceIndex = 1;
@@ -211,7 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
     choicesContainer.appendChild(choice1);
   }
   
-  // Action state button listeners.
   document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'jiqqle-button') {
       if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -240,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Function to perform snapshot capture, gather inputs, save choices, then redirect.
   function proceedWithJiqqle() {
     if (window.crca && window.crca.canvas) {
       const snapshot = window.crca.canvas.toDataURL("image/png");
@@ -269,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // ---------------- IndexedDB Functions ----------------
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('jiqqleDB', 1);
@@ -318,6 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initChoices();
 });
+
 
 
 
