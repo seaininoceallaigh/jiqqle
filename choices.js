@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if the skip flag is set (e.g. when returning from jiggle.html)
+  // Read and log the skip flag for debugging.
   const skipOpening = localStorage.getItem('skipOpening') === 'true';
+  console.log("skipOpening flag:", skipOpening);
 
-  // Declare variables for the choices functionality.
+  // Declare variables used for choices.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // Circles animation accepts a loader callback triggered after 2 seconds.
+  // The circles animation accepts a loader callback that fires after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -34,9 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // Always trigger loader callback after 2 seconds.
+      // Always trigger the loader callback after 2 seconds.
       if (!this.loaderTriggered && (timestamp - this.startTime) >= 2000) {
         this.loaderTriggered = true;
+        console.log("Loader callback triggered at", timestamp);
         if (loaderCallback) loaderCallback();
       }
       if (timestamp - lastDrawTime > 100) {  // 100ms delay between draws
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const y = getRandomIntInclusive(0, h);
         const a = getRandomIntInclusive(0, 255);
         const radius = getRandomIntInclusive(10, 100);
-        ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a/255})`;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
@@ -93,12 +95,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // fullLoader displays text sentences (full loading) for fresh loads.
+  // Full loader shows text sentences: first sentence for ~2 sec then second sentence for ~2 sec.
   function fullLoader() {
+    console.log("Running fullLoader");
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
-    // Force a layout reflow to ensure the element is ready.
+    // Force a reflow to ensure the element is ready.
     void preloaderEl.offsetWidth;
     displayWord(firstWordArr, preloaderEl);
     setTimeout(() => {
@@ -108,29 +111,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 2000);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
-      if (window.crca && window.crca.stop) {
-        window.crca.stop();
-      }
+      if (window.crca && window.crca.stop) { window.crca.stop(); }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
     }, 4000);
   }
   
-  // minimalLoader displays no text, for returning from jiggle.html.
+  // Minimal loader (for returning from jiggle.html): No text, 2-second delay.
   function minimalLoader() {
+    console.log("Running minimalLoader");
     setTimeout(() => {
-      if (window.crca && window.crca.stop) {
-        window.crca.stop();
-      }
+      if (window.crca && window.crca.stop) { window.crca.stop(); }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
     }, 2000);
   }
   
-  // Select loader callback based on the skip flag.
+  // Select the loader callback based on the flag.
   const loaderCallback = skipOpening ? minimalLoader : fullLoader;
   
-  // Instantiate the circles animation; its callback fires after 2 seconds.
+  // Instantiate the circles animation with the chosen callback.
   window.crca = new CirclesRandomColorAnimation(loaderCallback);
   
   // ---------------- Choice Form Functionality ----------------
