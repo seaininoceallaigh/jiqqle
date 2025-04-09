@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // The circles animation now accepts a callback that will be invoked after 2 seconds.
+  // The circles animation accepts a callback that will be triggered after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const w = window.innerWidth, h = window.innerHeight;
@@ -93,17 +93,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Full loader: shows two text sentences (2 seconds each)
+  // Full loader (for fresh URL typing): Shows first sentence for ~2 seconds,
+  // then second sentence for ~2 seconds, then hides loader.
   function fullLoader() {
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
-    displayWord(firstWordArr, preloaderEl);
+    // Extra short delay ensures rendering.
+    setTimeout(() => {
+      displayWord(firstWordArr, preloaderEl);
+    }, 100);
     setTimeout(() => {
       preloaderEl.innerHTML = '';
       counter = 0;
       displayWord(secondWordArr, preloaderEl);
-    }, 2000);
+    }, 2100);
     setTimeout(() => {
       preloaderEl.style.display = 'none';
       if (window.crca && window.crca.stop) {
@@ -111,10 +115,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('choices-section').style.display = 'block';
       initChoices();
-    }, 4000);
+    }, 4100);
   }
   
-  // Minimal loader: no text sentences, 2-second delay before showing choices.
+  // Minimal loader (for returning from jiggle.html): No text shown;
+  // Wait 2 seconds then hide loader.
   function minimalLoader() {
     setTimeout(() => {
       if (window.crca && window.crca.stop) {
@@ -125,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 2000);
   }
   
-  // Choose the loader callback based on the skip flag.
+  // Choose the appropriate loader callback.
   const loaderCallback = skipOpening ? minimalLoader : fullLoader;
   
   // Create the circles animation; it will call loaderCallback after 2 seconds.
@@ -336,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
