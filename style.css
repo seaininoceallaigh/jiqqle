@@ -1,7 +1,10 @@
 html, body {
-  height: 100%;
+ 
   margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
+
 body {
   overflow-x: hidden;
   
@@ -134,10 +137,10 @@ canvas {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1;
-
   width: 100vw;
-  height: 100vh;
+  /* height will be set via a custom property */
+  height: calc(var(--vh, 1vh) * 100);
+  z-index: 1;
 }
 
 #reload-index {
