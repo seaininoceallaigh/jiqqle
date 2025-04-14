@@ -18,6 +18,16 @@ body {
 position: relative;
 }
 
+@media (max-width: 600px) {
+  .wrapper {
+
+    top: 40%;
+position: relative;
+
+  }
+
+}
+
 
 body {
   margin: 0;
