@@ -67,23 +67,33 @@ function randomChoice() {
   return choices[index];
 }
 
-// -------------- Circles Animation --------------
+// -------------- Utility Function --------------
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// -------------- Circles Animation (Updated for DPR) --------------
 function CirclesRandomColorAnimation() {
   this.canvas = document.createElement('canvas');
-  const w = window.innerWidth, h = window.innerHeight;
-  this.canvas.width = w;
-  this.canvas.height = h;
+  const dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  // Set the drawing buffer size accounting for DPR.
+  this.canvas.width = w * dpr;
+  this.canvas.height = h * dpr;
+  // Set CSS display size.
+  this.canvas.style.width = w + 'px';
+  this.canvas.style.height = h + 'px';
   this.canvas.style.position = 'absolute';
-  this.canvas.style.top = 0;
-  this.canvas.style.left = 0;
+  this.canvas.style.top = '0';
+  this.canvas.style.left = '0';
   this.canvas.style.zIndex = 1;
+  
   const ctx = this.canvas.getContext('2d');
+  // Scale drawing context so commands are rendered correctly.
+  ctx.scale(dpr, dpr);
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, w, h);
   document.body.insertBefore(this.canvas, document.body.firstChild);
@@ -93,7 +103,7 @@ function CirclesRandomColorAnimation() {
     animationId = window.requestAnimationFrame(draw);
     if (!draw.frameCount) draw.frameCount = 0;
     draw.frameCount++;
-    if (draw.frameCount % 10 === 1) {
+    if (draw.frameCount % 10 === 1) { // Draw every 10th frame.
       const r = getRandomIntInclusive(0, 255);
       const g = getRandomIntInclusive(0, 255);
       const b = getRandomIntInclusive(0, 255);
@@ -170,7 +180,7 @@ function mouseMoveHandler(e) {
 // -------------- Jiggle Sequence --------------
 function startJiggleSequence() {
   console.log("startJiggleSequence triggered.");
-  // Hide the old background and heading.
+  // Hide the background image and heading.
   document.body.style.backgroundImage = 'none';
   if (jiggleHeading) {
     jiggleHeading.style.display = 'none';
@@ -216,11 +226,7 @@ function startJiggleSequence() {
     resultDiv.style.transform = 'translate(-50%, -50%)';
     resultDiv.style.zIndex = 30;
     // Set random answer text size: on mobile 3em, on desktop 15em.
-    if (isMobileDevice()) {
-      resultDiv.style.fontSize = '3em';
-    } else {
-      resultDiv.style.fontSize = '15em'; // This line sets desktop random answer text size.
-    }
+    resultDiv.style.fontSize = isMobileDevice() ? '3em' : '15em';
     console.log("Choices array:", choices);
     const choice = randomChoice();
     console.log("Random choice:", choice);
