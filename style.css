@@ -173,3 +173,11 @@ canvas {
   }
 }
 
+@media (max-width: 600px) {
+  .action-btn {
+    width: 90vw;
+    box-sizing: border-box;
+  }
+}
+
+
