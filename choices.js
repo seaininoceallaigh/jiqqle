@@ -214,25 +214,61 @@ document.addEventListener('DOMContentLoaded', function() {
     return div;
   }
   
+  // ---------------- Updated showActionState ----------------
   function showActionState() {
-    document.getElementById('choice-instructions').style.display = 'none';
-
+    // Hide the "Enter choices" header.
+    const instructions = document.getElementById('choice-instructions');
+    if (instructions) {
+      instructions.style.display = 'none';
+    }
+    
+    // Hide all choice elements.
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
+    
+    // Create or show the action-state container.
     let asDiv = document.getElementById('action-state');
     if (!asDiv) {
       asDiv = document.createElement('div');
       asDiv.id = 'action-state';
-      const jiqqleButton = document.createElement('button');
-      jiqqleButton.id = 'jiqqle-button';
-      jiqqleButton.textContent = 'Take your chances';
+      // Center the buttons vertically using flexbox.
+      asDiv.style.display = 'flex';
+      asDiv.style.flexDirection = 'column';
+      asDiv.style.justifyContent = 'center';
+      asDiv.style.alignItems = 'center';
+      
+      // Create the Add More Choices button.
       const addMoreButton = document.createElement('button');
       addMoreButton.id = 'action-add-more';
       addMoreButton.textContent = 'Add more choices';
+      addMoreButton.style.borderRadius = '25px';
+      addMoreButton.style.padding = '10px 20px';
+      addMoreButton.style.fontSize = '16px';
+      addMoreButton.style.margin = '10px';
+      addMoreButton.style.textAlign = 'center';
+      addMoreButton.style.color = '#757575'; // Same as custom-file-label text color.
+      addMoreButton.style.backgroundColor = 'white';
+      addMoreButton.style.border = '1px solid #ccc';
+      
+      // Create the Take Your Chances button.
+      const jiqqleButton = document.createElement('button');
+      jiqqleButton.id = 'jiqqle-button';
+      jiqqleButton.textContent = 'Take your chances';
+      jiqqleButton.style.borderRadius = '25px';
+      jiqqleButton.style.padding = '10px 20px';
+      jiqqleButton.style.fontSize = '16px';
+      jiqqleButton.style.margin = '10px';
+      jiqqleButton.style.textAlign = 'center';
+      jiqqleButton.style.color = '#757575';
+      jiqqleButton.style.backgroundColor = 'white';
+      jiqqleButton.style.border = '1px solid #ccc';
+      
+      // Append the buttons in the desired order.
       asDiv.appendChild(addMoreButton);
       asDiv.appendChild(jiqqleButton);
+      
       document.getElementById('choices-section').appendChild(asDiv);
     }
-    asDiv.style.display = 'block';
+    asDiv.style.display = 'flex';
   }
   
   function hideActionState() {
