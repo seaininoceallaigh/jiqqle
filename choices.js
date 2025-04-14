@@ -18,11 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // The circles animation accepts a loader callback, which fires after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
-    const w = window.innerWidth, h = window.innerHeight;
-    this.canvas.width = w;
-    this.canvas.height = h;
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // Set canvas drawing buffer to account for devicePixelRatio
+    this.canvas.width = w * dpr;
+    this.canvas.height = h * dpr;
+    // Set CSS display size
+    this.canvas.style.width = w + 'px';
+    this.canvas.style.height = h + 'px';
     this.canvas.style.zIndex = 1;
+    
     const ctx = this.canvas.getContext('2d');
+    // Scale the drawing context so drawing commands are not affected
+    ctx.scale(dpr, dpr);
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, w, h);
     document.body.insertBefore(this.canvas, document.body.firstChild);
@@ -35,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // Trigger loader callback after 2 seconds.
+      // Trigger loader callback after 1 second (adjust if needed).
       if (!this.loaderTriggered && (timestamp - this.startTime) >= 1000) {
         this.loaderTriggered = true;
         console.log("Loader callback triggered at:", timestamp);
@@ -343,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
