@@ -244,6 +244,8 @@ function startJiggleSequence() {
 
 function displayChoice(choice) {
   resultDiv.innerHTML = '';
+  resultDiv.style.opacity = '0'; // Ensure it starts hidden
+
   if (choice.file) {
     const img = document.createElement('img');
     const url = URL.createObjectURL(choice.file);
@@ -256,7 +258,13 @@ function displayChoice(choice) {
   } else {
     resultDiv.textContent = choice.text;
   }
+  
+  // Trigger fade-in after a tiny delay for the transition to work.
+  setTimeout(() => {
+    resultDiv.style.opacity = '1';
+  }, 50);
 }
+
 
 // -------------- DOMContentLoaded Setup --------------
 document.addEventListener('DOMContentLoaded', function() {
