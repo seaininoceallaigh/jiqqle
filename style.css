@@ -114,6 +114,13 @@ button {
   max-width: 80%;
   height: auto;
 }
+
+ #result {
+    text-align: center;
+    transition: opacity 2s ease;
+    opacity: 0; /* Start hidden */
+  }
+
 .loader-container {
   position: absolute;
   top: 50%;
