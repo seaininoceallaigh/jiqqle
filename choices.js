@@ -248,6 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
       addMoreButton.style.color = '#757575'; // Same as custom-file-label text color.
       addMoreButton.style.backgroundColor = 'white';
       addMoreButton.style.border = '1px solid #ccc';
+
+      addMoreButton.classList.add('action-btn');
       
       // Create the Take Your Chances button.
       const jiqqleButton = document.createElement('button');
@@ -261,6 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
       jiqqleButton.style.color = '#757575';
       jiqqleButton.style.backgroundColor = 'white';
       jiqqleButton.style.border = '1px solid #ccc';
+
+      jiqqleButton.classList.add('action-btn');
       
       // Append the buttons in the desired order.
       asDiv.appendChild(addMoreButton);
