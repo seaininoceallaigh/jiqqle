@@ -167,4 +167,9 @@ canvas {
   }
 }
 
+@media (max-width: 600px) {
+  #action-state {
+    margin-top: 100px; /* Adjust as needed */
+  }
+}
 
