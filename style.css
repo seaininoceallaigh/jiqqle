@@ -12,24 +12,18 @@ body {
 
 
 .wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-
-  top: 30%;
-position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 30vh; /* 30% down for desktop */
 }
 
 @media (max-width: 600px) {
   .wrapper {
-
-    top: 40%;
-position: relative;
-
+    top: 40vh; /* 40% down for mobile */
   }
-
 }
+
 
 
 body {
