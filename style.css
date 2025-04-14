@@ -23,7 +23,7 @@ body {
 
 @media (max-width: 600px) {
   .wrapper {
-    top: 30vh;  /* Mobile: 40% down */
+    top: 35vh;  /* Mobile: 35% down */
   }
 }
 
