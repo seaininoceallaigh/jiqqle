@@ -215,6 +215,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function showActionState() {
+    document.getElementById('choice-instructions').style.display = 'none';
+
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
     let asDiv = document.getElementById('action-state');
     if (!asDiv) {
