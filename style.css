@@ -180,5 +180,10 @@ canvas {
     font-size: 20px!important;
   }
 }
+@media (max-width: 600px) {
+  #jiggle-heading {
+    margin-top: -100px;
+  }
+}
 
 
