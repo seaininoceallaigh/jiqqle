@@ -15,14 +15,16 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 30vh; /* 30% down for desktop */
+  top: 30vh; /* 30% for desktop */
+  z-index: 10; /* Make sure it's above the canvas */
 }
 
 @media (max-width: 600px) {
   .wrapper {
-    top: 40vh; /* 40% down for mobile */
+    top: 40vh; /* 40% for mobile */
   }
 }
+
 
 
 
