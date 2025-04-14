@@ -1,7 +1,7 @@
 html, body {
- 
   margin: 0;
   padding: 0;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -15,13 +15,13 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 30vh; /* 30% for desktop */
-  z-index: 10; /* Make sure it's above the canvas */
+  z-index: 10;
+  top: 30vh;  /* Desktop: 30% down */
 }
 
 @media (max-width: 600px) {
   .wrapper {
-    top: 40vh; /* 40% for mobile */
+    top: 40vh;  /* Mobile: 40% down */
   }
 }
 
@@ -134,8 +134,7 @@ canvas {
   top: 0;
   left: 0;
   width: 100vw;
-  /* height will be set via a custom property */
-  height: calc(var(--vh, 1vh) * 100);
+  height: 100vh;
   z-index: 1;
 }
 
