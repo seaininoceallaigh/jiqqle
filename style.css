@@ -193,4 +193,11 @@ canvas {
   }
 }
 
+@media (max-width: 600px) {
+  #result {
+    font-size: 3em !important;
+  }
+}
+
+
 
