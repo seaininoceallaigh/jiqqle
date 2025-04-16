@@ -216,17 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
           choice1.style.display = 'block';
         }
       });
-      
-      // If on desktop, style the buttons rounded with grey arrow color.
-      if (window.innerWidth > 600) {
-        backBtn.style.borderRadius = '25px';
-        backBtn.style.color = 'grey';
-        backBtn.style.padding = '10px 20px';
-        nextBtn.style.borderRadius = '25px';
-        nextBtn.style.color = 'grey';
-        nextBtn.style.padding = '10px 20px';
-      }
-      
+        
       navContainer.appendChild(backBtn);
       navContainer.appendChild(nextBtn);
       div.appendChild(navContainer);
