@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fileLabel.setAttribute('for', fileInput.id);
     fileLabel.textContent = 'Or Choose Image';
     
+    // Create next button.
     const nextBtn = document.createElement('button');
     nextBtn.className = 'next-btn';
     nextBtn.textContent = '→';
@@ -193,10 +194,16 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => { textInput.focus(); }, 100);
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
-    div.appendChild(nextBtn);
     
-    // Add a back arrow on choice 2 so users can return to choice 1.
+    // For Choice 2, wrap back and next buttons in a nav container.
     if (index === 2) {
+      const navContainer = document.createElement('div');
+      navContainer.style.display = 'flex';
+      navContainer.style.justifyContent = 'space-between';
+      navContainer.style.width = '100%';
+      navContainer.style.marginTop = '10px';
+
+      // Back arrow button.
       const backBtn = document.createElement('button');
       backBtn.className = 'back-btn';
       backBtn.textContent = '←';
@@ -207,7 +214,15 @@ document.addEventListener('DOMContentLoaded', function() {
           choice1.style.display = 'block';
         }
       });
-      div.appendChild(backBtn);
+      
+      // Append backBtn and nextBtn to navContainer.
+      navContainer.appendChild(backBtn);
+      navContainer.appendChild(nextBtn);
+      
+      div.appendChild(navContainer);
+    } else {
+      // For Choice 1 and others, just append next button.
+      div.appendChild(nextBtn);
     }
     
     if (index > 2) {
@@ -394,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
