@@ -195,14 +195,16 @@ document.addEventListener('DOMContentLoaded', function() {
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
     
-    // For Choice 2, wrap back and next buttons in a nav container.
+    // For Choice 2, add a navigation container with back and next buttons
     if (index === 2) {
       const navContainer = document.createElement('div');
+      // Use CSS flexbox to center the buttons next to each other.
       navContainer.style.display = 'flex';
-      navContainer.style.justifyContent = 'space-between';
-      navContainer.style.width = '100%';
+      navContainer.style.justifyContent = 'center';
+      navContainer.style.alignItems = 'center';
+      navContainer.style.gap = '20px'; // space between buttons
       navContainer.style.marginTop = '10px';
-
+      
       // Back arrow button.
       const backBtn = document.createElement('button');
       backBtn.className = 'back-btn';
@@ -215,10 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
       
-      // Append backBtn and nextBtn to navContainer.
       navContainer.appendChild(backBtn);
       navContainer.appendChild(nextBtn);
-      
       div.appendChild(navContainer);
     } else {
       // For Choice 1 and others, just append next button.
@@ -284,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       asDiv.appendChild(addMoreButton);
       asDiv.appendChild(jiqqleButton);
-      
       document.getElementById('choices-section').appendChild(asDiv);
     }
     asDiv.style.display = 'flex';
@@ -409,6 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
