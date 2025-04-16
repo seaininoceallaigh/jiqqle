@@ -117,7 +117,7 @@ button {
 
  #result {
     text-align: center;
-    transition: opacity 4s ease;
+    transition: opacity 3s ease;
     opacity: 0; /* Start hidden */
   }
 
