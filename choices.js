@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Read and log the skip flag. (If coming from jiggle.html, it should be true.)
+  // Read and log the skip flag.
   const skipOpening = localStorage.getItem('skipOpening') === 'true';
   console.log("skipOpening flag:", skipOpening);
 
-  // Declare variables for choices functionality.
+  // Variables for choices functionality.
   const choicesContainer = document.getElementById('choices-container');
   const choiceData = {};
   let currentChoiceIndex = 1;
@@ -15,22 +15,18 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
-  // The circles animation accepts a loader callback, which fires after 2 seconds.
   function CirclesRandomColorAnimation(loaderCallback) {
     this.canvas = document.createElement('canvas');
     const dpr = window.devicePixelRatio || 1;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    // Set canvas drawing buffer to account for devicePixelRatio
     this.canvas.width = w * dpr;
     this.canvas.height = h * dpr;
-    // Set CSS display size
     this.canvas.style.width = w + 'px';
     this.canvas.style.height = h + 'px';
     this.canvas.style.zIndex = 1;
     
     const ctx = this.canvas.getContext('2d');
-    // Scale the drawing context so drawing commands are not affected
     ctx.scale(dpr, dpr);
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, w, h);
@@ -44,13 +40,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.startTime) {
         this.startTime = timestamp;
       }
-      // Trigger loader callback after 1 second (adjust if needed).
       if (!this.loaderTriggered && (timestamp - this.startTime) >= 1000) {
         this.loaderTriggered = true;
         console.log("Loader callback triggered at:", timestamp);
         if (loaderCallback) loaderCallback();
       }
-      if (timestamp - lastDrawTime > 100) {  // 100ms delay between draws
+      if (timestamp - lastDrawTime > 100) {
         lastDrawTime = timestamp;
         const r = getRandomIntInclusive(0, 255);
         const g = getRandomIntInclusive(0, 255);
@@ -103,13 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Full loader: shows text sentences (2 sec for first, 2 sec for second).
   function fullLoader() {
     console.log("Running fullLoader");
     preloaderEl.style.display = 'block';
     preloaderEl.innerHTML = '';
     counter = 0;
-    // Force a layout reflow.
     void preloaderEl.offsetWidth;
     displayWord(firstWordArr, preloaderEl);
     setTimeout(() => {
@@ -127,10 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 4000);
   }
   
-  // Minimal loader: for returning from jiggle.html (no text; 2 sec delay).
   function minimalLoader() {
     console.log("Running minimalLoader");
-    // Clear the flag so subsequent full loads are used.
     localStorage.removeItem('skipOpening');
     setTimeout(() => {
       if (window.crca && window.crca.stop) {
@@ -141,10 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 750);
   }
   
-  // Select the appropriate loader callback based on the skip flag.
   const loaderCallback = skipOpening ? minimalLoader : fullLoader;
-  
-  // Instantiate the circles animation with the chosen callback.
   window.crca = new CirclesRandomColorAnimation(loaderCallback);
   
   // ---------------- Choice Form Functionality ----------------
@@ -194,6 +182,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    // Automatically trigger next action when a file is chosen.
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files && fileInput.files.length > 0) {
+        nextBtn.click();
+      }
+    });
+    
     div.appendChild(textInput);
     setTimeout(() => { textInput.focus(); }, 100);
     div.appendChild(fileLabel);
@@ -214,29 +209,23 @@ document.addEventListener('DOMContentLoaded', function() {
     return div;
   }
   
-  // ---------------- Updated showActionState ----------------
   function showActionState() {
-    // Hide the "Enter choices" header.
     const instructions = document.getElementById('choice-instructions');
     if (instructions) {
       instructions.style.display = 'none';
     }
     
-    // Hide all choice elements.
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
     
-    // Create or show the action-state container.
     let asDiv = document.getElementById('action-state');
     if (!asDiv) {
       asDiv = document.createElement('div');
       asDiv.id = 'action-state';
-      // Center the buttons vertically using flexbox.
       asDiv.style.display = 'flex';
       asDiv.style.flexDirection = 'column';
       asDiv.style.justifyContent = 'center';
       asDiv.style.alignItems = 'center';
       
-      // Create the Add More Choices button.
       const addMoreButton = document.createElement('button');
       addMoreButton.id = 'action-add-more';
       addMoreButton.textContent = 'Add more choices';
@@ -245,13 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
       addMoreButton.style.fontSize = '16px';
       addMoreButton.style.margin = '10px';
       addMoreButton.style.textAlign = 'center';
-      addMoreButton.style.color = '#757575'; // Same as custom-file-label text color.
+      addMoreButton.style.color = '#757575';
       addMoreButton.style.backgroundColor = 'white';
       addMoreButton.style.border = '1px solid #ccc';
-
       addMoreButton.classList.add('action-btn');
       
-      // Create the Take Your Chances button.
       const jiqqleButton = document.createElement('button');
       jiqqleButton.id = 'jiqqle-button';
       jiqqleButton.textContent = 'Take your chances';
@@ -263,10 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
       jiqqleButton.style.color = '#757575';
       jiqqleButton.style.backgroundColor = 'white';
       jiqqleButton.style.border = '1px solid #ccc';
-
       jiqqleButton.classList.add('action-btn');
       
-      // Append the buttons in the desired order.
       asDiv.appendChild(addMoreButton);
       asDiv.appendChild(jiqqleButton);
       
