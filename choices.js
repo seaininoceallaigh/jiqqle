@@ -195,15 +195,15 @@ document.addEventListener('DOMContentLoaded', function() {
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
     
-    // For Choice 2, add a navigation container with back and next buttons
+    // For Choice 2, create a navigation container with back and next buttons side by side.
     if (index === 2) {
       const navContainer = document.createElement('div');
-      // Use CSS flexbox to center the buttons next to each other.
       navContainer.style.display = 'flex';
       navContainer.style.justifyContent = 'center';
       navContainer.style.alignItems = 'center';
-      navContainer.style.gap = '20px'; // space between buttons
       navContainer.style.marginTop = '10px';
+      // Set no gap so buttons are right next to each other.
+      navContainer.style.gap = '0px';
       
       // Back arrow button.
       const backBtn = document.createElement('button');
@@ -216,6 +216,16 @@ document.addEventListener('DOMContentLoaded', function() {
           choice1.style.display = 'block';
         }
       });
+      
+      // If on desktop, style the buttons rounded with grey arrow color.
+      if (window.innerWidth > 600) {
+        backBtn.style.borderRadius = '25px';
+        backBtn.style.color = 'grey';
+        backBtn.style.padding = '10px 20px';
+        nextBtn.style.borderRadius = '25px';
+        nextBtn.style.color = 'grey';
+        nextBtn.style.padding = '10px 20px';
+      }
       
       navContainer.appendChild(backBtn);
       navContainer.appendChild(nextBtn);
