@@ -195,6 +195,21 @@ document.addEventListener('DOMContentLoaded', function() {
     div.appendChild(fileInput);
     div.appendChild(nextBtn);
     
+    // Add a back arrow on choice 2 so users can return to choice 1.
+    if (index === 2) {
+      const backBtn = document.createElement('button');
+      backBtn.className = 'back-btn';
+      backBtn.textContent = '←';
+      backBtn.addEventListener('click', function() {
+        div.style.display = 'none';
+        let choice1 = document.querySelector('.choice[data-index="1"]');
+        if (choice1) {
+          choice1.style.display = 'block';
+        }
+      });
+      div.appendChild(backBtn);
+    }
+    
     if (index > 2) {
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete-btn';
@@ -379,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the choices form.
   initChoices();
 });
+
 
 
 
