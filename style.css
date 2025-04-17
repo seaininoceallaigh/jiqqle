@@ -225,7 +225,7 @@ canvas {
 }
 
 #reload-index img {
-  transform: rotate(180deg);
+  transform: rotate(142deg) scaleX(-1);
   transform-origin: center;
 }
 
