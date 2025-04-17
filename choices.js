@@ -1,3 +1,4 @@
+// choices.js
 document.addEventListener('DOMContentLoaded', function() {
   // Read and log the skip flag.
   const skipOpening = localStorage.getItem('skipOpening') === 'true';
@@ -195,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
     div.appendChild(fileLabel);
     div.appendChild(fileInput);
     
+    // For Choice 2, create a navigation container with back and next buttons side by side.
     if (index === 2) {
       const navContainer = document.createElement('div');
       navContainer.style.display = 'flex';
@@ -203,18 +205,23 @@ document.addEventListener('DOMContentLoaded', function() {
       navContainer.style.marginTop = '10px';
       navContainer.style.gap = '0px';
       
+      // Back arrow button.
       const backBtn = document.createElement('button');
       backBtn.className = 'back-btn';
       backBtn.textContent = '←';
       backBtn.addEventListener('click', function() {
         div.style.display = 'none';
-        document.querySelector('.choice[data-index="1"]').style.display = 'block';
+        let choice1 = document.querySelector('.choice[data-index="1"]');
+        if (choice1) {
+          choice1.style.display = 'block';
+        }
       });
         
       navContainer.appendChild(backBtn);
       navContainer.appendChild(nextBtn);
       div.appendChild(navContainer);
     } else {
+      // For Choice 1 and others, just append next button.
       div.appendChild(nextBtn);
     }
     
@@ -234,7 +241,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function showActionState() {
     const instructions = document.getElementById('choice-instructions');
-    if (instructions) instructions.style.display = 'none';
+    if (instructions) {
+      instructions.style.display = 'none';
+    }
     
     document.querySelectorAll('.choice').forEach(c => c.style.display = 'none');
     
@@ -250,11 +259,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const addMoreButton = document.createElement('button');
       addMoreButton.id = 'action-add-more';
       addMoreButton.textContent = 'Add more choices';
+      addMoreButton.style.borderRadius = '25px';
+      addMoreButton.style.padding = '10px 20px';
+      addMoreButton.style.fontSize = '16px';
+      addMoreButton.style.margin = '10px';
+      addMoreButton.style.textAlign = 'center';
+      addMoreButton.style.color = '#757575';
+      addMoreButton.style.backgroundColor = 'white';
+      addMoreButton.style.border = '1px solid #ccc';
       addMoreButton.classList.add('action-btn');
       
       const jiqqleButton = document.createElement('button');
       jiqqleButton.id = 'jiqqle-button';
       jiqqleButton.textContent = 'Take your chances';
+      jiqqleButton.style.borderRadius = '25px';
+      jiqqleButton.style.padding = '10px 20px';
+      jiqqleButton.style.fontSize = '16px';
+      jiqqleButton.style.margin = '10px';
+      jiqqleButton.style.textAlign = 'center';
+      jiqqleButton.style.color = '#757575';
+      jiqqleButton.style.backgroundColor = 'white';
+      jiqqleButton.style.border = '1px solid #ccc';
       jiqqleButton.classList.add('action-btn');
       
       asDiv.appendChild(addMoreButton);
@@ -319,7 +344,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const idx = parseInt(node.dataset.index);
       const t = node.querySelector('input[type="text"]').value.trim();
       const f = node.querySelector('input[type="file"]').files[0] || null;
-      if (t || f) choiceData[idx] = { text: t, file: f };
+      if (t || f) {
+        choiceData[idx] = { text: t, file: f };
+      }
     });
     const allChoices = Object.values(choiceData);
     if (allChoices.length < 2) {
@@ -328,7 +355,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     saveChoicesToIndexedDB(allChoices)
       .then(() => { window.location.href = 'jiggle.html'; })
-      .catch(error => console.error("Error saving choices:", error));
+      .catch(error => {
+        console.error("Error saving choices:", error);
+      });
   }
   
   function openDatabase() {
