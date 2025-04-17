@@ -224,4 +224,8 @@ canvas {
   }
 }
 
+#reload-index img {
+  transform: rotate(180deg);
+  transform-origin: center;
+}
 
