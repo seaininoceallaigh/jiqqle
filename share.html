@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jiqqle – Take your chances</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma"         content="no-cache">
+  <meta http-equiv="Expires"        content="0">
+  <!-- cache-bust the CSS -->
+  <link rel="stylesheet" href="style.css?ts=20250516">
+</head>
+<body>
+  <div class="loader-container"></div>
+  <div class="wrapper">
+    <button id="take-btn" class="action-btn" style="display:none">
+      Take your chances
+    </button>
+  </div>
+
+  <script>
+  // 1) Loader words
+  const firstWords  = ["Don't","know","what","to","do?"];
+  const secondWords = ["Let","the","Universe","decide"];
+  const loaderEl    = document.querySelector('.loader-container');
+
+  function showWords(words){
+    loaderEl.innerHTML = '';
+    words.forEach(w => {
+      const s = document.createElement('span');
+      s.className = 'loading';
+      s.textContent = w;
+      s.style.opacity   = '0';
+      s.style.transform = `translate(${Math.random()*200-100}px,${Math.random()*200-100}px)`;
+      loaderEl.appendChild(s);
+    });
+    requestAnimationFrame(()=>{
+      loaderEl.querySelectorAll('.loading').forEach(el=>{
+        el.style.transition = 'transform .5s ease, opacity .5s ease';
+        el.style.transform  = 'translate(0,0)';
+        el.style.opacity    = '1';
+      });
+    });
+  }
+
+  // 2) Exactly the same circles-bg you use in index.html
+  function CirclesBG(){
+    const c = document.createElement('canvas');
+    const dpr = window.devicePixelRatio||1,
+          w   = innerWidth,
+          h   = innerHeight;
+    c.width  = w*dpr;
+    c.height = h*dpr;
+    Object.assign(c.style, {
+      position:'fixed', top:0, left:0,
+      width:`${w}px`, height:`${h}px`,
+      zIndex:1
+    });
+    document.body.prepend(c);
+    const ctx = c.getContext('2d');
+    ctx.scale(dpr,dpr);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0,0,w,h);
+
+    let last=0;
+    const loop = ts => {
+      if (ts-last > 100) {
+        last = ts;
+        const r   = Math.random()*255|0,
+              g   = Math.random()*255|0,
+              b   = Math.random()*255|0,
+              a   = Math.random(),
+              rad = 10 + Math.random()*90,
+              x   = Math.random()*w,
+              y   = Math.random()*h;
+        ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+        ctx.beginPath();
+        ctx.arc(x,y,rad,0,2*Math.PI);
+        ctx.fill();
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.canvas = c;
+    this.stop   = ()=>cancelAnimationFrame(this.raf);
+    this.raf    = requestAnimationFrame(loop);
+  }
+
+  // 3) Fetch, then start loader, then snapshot at end, then show button
+  const key = new URLSearchParams(location.search).get('key');
+  if (!key) {
+    loaderEl.textContent = 'Missing key';
+    throw new Error('Missing key');
+  }
+
+  async function openDB(){
+    return new Promise((res,rej)=>{
+      const rq = indexedDB.open('jiqqleDB', 1);
+      rq.onupgradeneeded = e=>{
+        e.target.result.createObjectStore('choices',{keyPath:'id',autoIncrement:true});
+      };
+      rq.onsuccess = e=>res(e.target.result);
+      rq.onerror   = e=>rej(e.target.error);
+    });
+  }
+  async function saveChoices(arr){
+    const db = await openDB();
+    const tx = db.transaction('choices','readwrite');
+    const st = tx.objectStore('choices');
+    st.clear();
+    arr.forEach(c=>st.add(c));
+    return new Promise(r=>tx.oncomplete=r);
+  }
+
+  (async()=>{
+    try {
+     // add a changing query-param and disable cache
+const url = `${key}?_=${Date.now()}`;
+const resp = await fetch(url, { cache: 'no-store' });
+
+
+
+      if (!resp.ok) throw new Error(resp.statusText);
+      const choices = await resp.json();
+
+      // kick off the circles animation
+      window.bgAnim = new CirclesBG();
+
+      // start the two-part loader
+      showWords(firstWords);
+      setTimeout(()=> showWords(secondWords), 2000);
+
+      // after 4s, snapshot bg, stop animation, show button
+      setTimeout(async () => {
+        localStorage.setItem(
+          'backgroundSnapshot',
+          window.bgAnim.canvas.toDataURL('image/png')
+        );
+        window.bgAnim.stop();
+        loaderEl.style.display = 'none';
+        document.getElementById('take-btn').style.display = 'block';
+      }, 4000);
+
+      await saveChoices(choices);
+    } catch (err) {
+      console.error(err);
+      loaderEl.textContent = 'Load error';
+      if (window.bgAnim) window.bgAnim.stop();
+    }
+  })();
+
+  document.getElementById('take-btn').onclick = () => {
+    window.location.href = 'share-jiggle.html';
+  };
+  </script>
+</body>
+</html>
