@@ -229,3 +229,38 @@ canvas {
   transform-origin: center;
 }
 
+/* ensure result images obey same sizing everywhere including share-jiggle.html */
+#result img {
+  width: 30%;
+  height:50%;
+  
+}
+
+
+/* For share.html make all .action-btn buttons look identical */
+.action-btn {
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 10px;
+  text-align: center;
+  color: #757575;
+  background-color: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+/* desktop width */
+@media (min-width: 601px) {
+  .action-btn { width: 500px; }
+}
+
+/* mobile width */
+@media (max-width: 600px) {
+  .action-btn {
+    width: 90vw;
+    box-sizing: border-box;
+    font-size: 20px!important;
+  }
+}
+
