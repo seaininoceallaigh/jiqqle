@@ -276,13 +276,14 @@ canvas {
   }
 }
 
+/* put this at the very end of the <style> block in jiggle.html */
 @media (max-width: 600px) {
   #reload-index {
-    position: fixed;                           /* stick to viewport */
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 30;                               /* stay on top */
+    position: fixed !important;
+    bottom: calc(env(safe-area-inset-bottom) + 20px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 30;
   }
 }
 
