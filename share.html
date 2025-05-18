@@ -13,21 +13,104 @@
 <body>
   <div class="loader-container"></div>
   <div class="wrapper">
-    <!-- after loader, we'll show this -->
-    <div id="action-state" style="display:none;">
+    <div id="action-state" style="display:none; flex-direction:column; align-items:center; z-index:10;">
       <button id="jiqqle-button" class="action-btn">Take your chances</button>
     </div>
   </div>
 
   <script>
-    // loader + circles animation (exactly as in index.js)
-    // … assume you copy in your CirclesRandomColorAnimation + fullLoader/minimalLoader here …
-    // at the end of your loader code, call:
-    //    document.getElementById('action-state').style.display = 'flex';
+    // ─── loader + circles animation ───────────────────────────────────────
+    function getRandomIntInclusive(min, max) {
+      min = Math.ceil(min); max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
-    // motion‐permission + navigate, preserving ?key=…
+    function CirclesRandomColorAnimation(loaderCallback) {
+      this.canvas = document.createElement('canvas');
+      const dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth, h = window.innerHeight;
+      this.canvas.width  = w * dpr;
+      this.canvas.height = h * dpr;
+      this.canvas.style.width  = w + 'px';
+      this.canvas.style.height = h + 'px';
+      this.canvas.style.zIndex = 1;
+      const ctx = this.canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, w, h);
+      document.body.insertBefore(this.canvas, document.body.firstChild);
+
+      let start = null, drawn = 0, lastDraw = 0;
+      const draw = (ts) => {
+        if (!start) start = ts;
+        if (loaderCallback && ts - start >= 1000 && !this.triggered) {
+          this.triggered = true;
+          loaderCallback();
+        }
+        if (ts - lastDraw > 100) {
+          lastDraw = ts;
+          const r = getRandomIntInclusive(0,255),
+                g = getRandomIntInclusive(0,255),
+                b = getRandomIntInclusive(0,255),
+                a = getRandomIntInclusive(0,255)/255,
+                x = getRandomIntInclusive(0,w),
+                y = getRandomIntInclusive(0,h),
+                rad = getRandomIntInclusive(10,100);
+          ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+          ctx.beginPath();
+          ctx.arc(x,y,rad,0,2*Math.PI);
+          ctx.fill();
+        }
+        this.raf = requestAnimationFrame(draw);
+      };
+      this.raf = requestAnimationFrame(draw);
+      this.stop = () => cancelAnimationFrame(this.raf);
+    }
+
+    // ─── animated text loader ────────────────────────────────────────────
+    const loaderEl    = document.querySelector('.loader-container');
+    const firstWords  = ["Don't","know","what","to","do?"];
+    const secondWords = ["Let","the","Universe","decide"];
+    function displayLetter(word, container) {
+      const span = document.createElement('span');
+      span.className = 'loading';
+      span.style.transform = `translate(${Math.random()*200-100}px,${Math.random()*200-100}px)`;
+      span.style.opacity = 0;
+      span.textContent = word;
+      container.appendChild(span);
+    }
+    function displayWord(arr, container) {
+      arr.forEach(w => displayLetter(w, container));
+      setTimeout(() => {
+        container.querySelectorAll('.loading').forEach(el => {
+          el.style.transform = 'translate(0,0)';
+          el.style.opacity = 1;
+        });
+      }, 50);
+    }
+
+    function fullLoader() {
+      loaderEl.style.display = 'block';
+      loaderEl.innerHTML = '';
+      displayWord(firstWords, loaderEl);
+      setTimeout(() => {
+        loaderEl.innerHTML = '';
+        displayWord(secondWords, loaderEl);
+      }, 2000);
+      setTimeout(() => {
+        loaderEl.style.display = 'none';
+        window.crca.stop();
+        document.getElementById('action-state').style.display = 'flex';
+      }, 4000);
+    }
+
+    // kick it off
+    window.crca = new CirclesRandomColorAnimation(fullLoader);
+    // ───────────────────────────────────────────────────────────────────────
+
+    // ─── “Take your chances” → request motion permission → share-jiggle ───
     document.getElementById('jiqqle-button').addEventListener('click', () => {
-      const go = () => {
+      const navigate = () => {
         const qs = window.location.search || '';
         window.location.href = 'share-jiggle.html' + qs;
       };
@@ -36,21 +119,16 @@
         typeof DeviceMotionEvent.requestPermission === 'function'
       ) {
         DeviceMotionEvent.requestPermission()
-          .then(state => {
-            if (state === 'granted') go();
-            else          alert('Motion access is required to jiggle.');
-          })
-          .catch(err => {
-            console.error(err);
-            alert('Could not request motion access.');
-          });
+          .then(state => state === 'granted' ? navigate() : alert('Motion access required'))
+          .catch(() => alert('Permission error'));
       } else {
-        go();
+        navigate();
       }
     });
   </script>
 </body>
 </html>
+
 
 
 
