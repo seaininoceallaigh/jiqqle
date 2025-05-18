@@ -268,15 +268,17 @@ canvas {
 @media (max-width: 600px) {
   #result img {
     max-width: 90vw;   /* fill most of the viewport width */
-    max-height: 70vh;  /* never grow taller than 70 % of screen */
-    height: auto;
+    max-height: 75vh;  /* never grow taller than 70 % of screen */
+
+    min-width: 50vw;
+    max-width: 50vh;
+    
   }
 }
 @media (max-width: 600px) {
   #reload-index {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); /* sit 20 px above iOS safe-area */
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 50px); /* sit 50 px above iOS safe-area */
     left: 50%;
-    bottom: 75px;
     transform: translateX(-50%);
   }
 }
