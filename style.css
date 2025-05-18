@@ -275,11 +275,16 @@ canvas {
     
   }
 }
+
 @media (max-width: 600px) {
-  /* ensure the button is a block-level sibling below your #result images */
   #reload-index {
-    display: block;       /* so margin applies predictably */
-    margin: 20px auto 0;  /* 20px below preceding content, centered */
+    /* flow below the result element instead of absolute at bottom */
+    position: static !important;
+    display: block;           /* ensure margin applies */
+    margin: 20px auto 0;      /* 20px above, centered horizontally */
+    transform: none !important;
+    bottom: auto !important;
+    left: auto !important;
   }
 }
 
