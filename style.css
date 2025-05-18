@@ -280,7 +280,7 @@ canvas {
 @media (max-width: 600px) {
   #reload-index {
     position: fixed !important;
-    bottom: calc(env(safe-area-inset-bottom) + 10px) !important;
+    bottom: calc(env(safe-area-inset-bottom) + 5px) !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     z-index: 30;
