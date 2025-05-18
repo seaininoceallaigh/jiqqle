@@ -4,33 +4,16 @@
   <meta charset="UTF-8">
   <title>Jiqqle – Jiggle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Prevent caching -->
+  <!-- no-cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?ts=20250516">
+  <meta http-equiv="Pragma"         content="no-cache">
+  <meta http-equiv="Expires"        content="0">
+  <link rel="stylesheet" href="style.css?ts=20250518">
   <style>
-    #jiggle-section {
-      display: none;
-      position: relative;
-      z-index: 10;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-    }
-    #reload-index {
-      display: none;
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      z-index: 30;
-    }
+    #jiggle-section{display:none;position:relative;z-index:10;
+      flex-direction:column;justify-content:center;align-items:center;height:100vh;text-align:center;}
+    #reload-index{display:none;position:absolute;bottom:20px;left:50%;
+      transform:translateX(-50%);background:none;border:none;cursor:pointer;z-index:30;}
   </style>
 </head>
 <body>
@@ -38,14 +21,11 @@
     <h2 id="jiggle-heading" class="jiggle-effect">Jiggle your device</h2>
     <div id="result"></div>
     <button id="reload-index">
-      <img
-        src="https://thumbs.wbm.im/pw/small/c2ef5dcf52f211a2d1978da4f76c0fec.png"
-        alt="Reload"
-        style="width:50px;height:50px;transform:rotate(142deg) scaleX(-1);transform-origin:center;"
-      >
+      <img src="https://thumbs.wbm.im/pw/small/c2ef5dcf52f211a2d1978da4f76c0fec.png"
+           alt="Reload" style="width:50px;height:50px;transform:rotate(142deg) scaleX(-1);transform-origin:center;">
     </button>
   </div>
-  <script src="share-jiggle.js?ts=20250516"></script>
+  <script src="share-jiggle.js?ts=20250518"></script>
 </body>
 </html>
 
