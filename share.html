@@ -4,44 +4,52 @@
   <meta charset="UTF-8">
   <title>Jiqqle – Remove All Doubt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Prevent caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma"         content="no-cache">
-  <meta http-equiv="Expires"        content="0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="style.css?ts=20250516">
 </head>
 <body>
   <div class="loader-container"></div>
   <div class="wrapper">
-    <div id="choices-section" style="display:none;">
-      <!-- your choices UI (from index.html) -->
-      <div id="action-state">
-        <button id="action-add-more" class="action-btn">Add more choices</button>
-        <button id="jiqqle-button"    class="action-btn">Take your chances</button>
-      </div>
+    <!-- after loader, we'll show this -->
+    <div id="action-state" style="display:none;">
+      <button id="jiqqle-button" class="action-btn">Take your chances</button>
     </div>
   </div>
 
-  <script src="choices.js?ts=20250516"></script>
   <script>
+    // loader + circles animation (exactly as in index.js)
+    // … assume you copy in your CirclesRandomColorAnimation + fullLoader/minimalLoader here …
+    // at the end of your loader code, call:
+    //    document.getElementById('action-state').style.display = 'flex';
+
+    // motion‐permission + navigate, preserving ?key=…
     document.getElementById('jiqqle-button').addEventListener('click', () => {
+      const go = () => {
+        const qs = window.location.search || '';
+        window.location.href = 'share-jiggle.html' + qs;
+      };
       if (
         typeof DeviceMotionEvent !== 'undefined' &&
         typeof DeviceMotionEvent.requestPermission === 'function'
       ) {
         DeviceMotionEvent.requestPermission()
           .then(state => {
-            if (state === 'granted') {
-              window.location.href = 'share-jiggle.html';
-            } else {
-              alert('Motion access is required to jiggle.');
-            }
+            if (state === 'granted') go();
+            else          alert('Motion access is required to jiggle.');
           })
-          .catch(console.error);
+          .catch(err => {
+            console.error(err);
+            alert('Could not request motion access.');
+          });
       } else {
-        window.location.href = 'share-jiggle.html';
+        go();
       }
     });
   </script>
 </body>
 </html>
+
 
