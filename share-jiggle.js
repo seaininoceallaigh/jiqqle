@@ -1,4 +1,4 @@
-/* ───── snapshot background ───── */
+/* ── restore snapshot background (if any) ─────────────────────────────── */
 const snap = localStorage.getItem('backgroundSnapshot');
 if (snap) {
   Object.assign(document.body.style, {
@@ -8,45 +8,41 @@ if (snap) {
   });
 }
 
-/* ───── load choices via ?key= … ───── */
-const qs      = new URLSearchParams(location.search);
-const jsonKey = qs.get('key');
-let   choices = [];
-if (jsonKey) {
-  fetch(jsonKey)
-    .then(r => r.json())
-    .then(d => { choices = d; })
+/* ── load choices from ?key=your.json ─────────────────────────────────── */
+const keyParam = new URLSearchParams(location.search).get('key');
+let choices = [];
+if (keyParam) {
+  fetch(keyParam).then(r => r.json()).then(d => { choices = d; })
     .catch(() => alert('Could not load choices'));
 }
 
-/* ───── helpers ───── */
-const isMobile = () =>
-  /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-const isTablet = () =>
-  navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-const randInt  = (m, M) => Math.floor(Math.random() * (M - m + 1)) + m;
+/* ── helpers ─────────────────────────────────────────────────────────── */
+const isMobile = () => /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i
+  .test(navigator.userAgent);
+const isTablet = () => navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+const randInt  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-/* DOM */
+/* DOM refs */
 const jiggleSection = document.getElementById('jiggle-section');
 const jiggleHeading = document.getElementById('jiggle-heading');
 const resultDiv     = document.getElementById('result');
 const reloadBtn     = document.getElementById('reload-index');
 
-/* ───── circles backdrop ───── */
+/* ── circles background animation ────────────────────────────────────── */
 function CirclesRandomColorAnimation () {
   this.canvas = document.createElement('canvas');
   const dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
-  this.canvas.width  = w * dpr; this.canvas.height = h * dpr;
-  Object.assign(this.canvas.style,{
-    position:'fixed',top:0,left:0,width:`${w}px`,height:`${h}px`,zIndex:1
-  });
+  this.canvas.width = w * dpr; this.canvas.height = h * dpr;
+  Object.assign(this.canvas.style,
+    { position:'fixed',top:0,left:0,width:`${w}px`,height:`${h}px`,zIndex:1 });
   document.body.prepend(this.canvas);
   const ctx = this.canvas.getContext('2d');
   ctx.scale(dpr,dpr); ctx.fillStyle='black'; ctx.fillRect(0,0,w,h);
-  let raf, f = 0;
+
+  let frame = 0, raf;
   const draw = () => {
     raf = requestAnimationFrame(draw);
-    if (++f % 10) return;
+    if (++frame % 10) return;
     ctx.fillStyle =
       `rgba(${randInt(0,255)},${randInt(0,255)},${randInt(0,255)},${randInt(0,255)/255})`;
     ctx.beginPath();
@@ -57,16 +53,23 @@ function CirclesRandomColorAnimation () {
   this.stop = () => cancelAnimationFrame(raf);
 }
 
-/* ───── jiggle sequence ───── */
+/* ── jiggle logic ─────────────────────────────────────────────────────── */
 let isRandomizing = false;
-let cooldownUntil = 0;         // earliest allowed shake
-const SHAKE = 40;
+let cooldownUntil = 0;                // time until next shake/mouse allowed
+const SHAKE_THR = 40;
+
+/* desktop mouse globals */
+let mouseMoves = 0;
+let lastMousePos = { x: null, y: null };
+let lastMouseVec = null;
+let mouseTimeout;
+const MOVE_THR = 50, RESET_TO = 1000, REQ_MOVES = 4;
 
 function startJiggle() {
   if (isRandomizing) return;
   isRandomizing = true;
 
-  /* hide previous */
+  /* hide previous result */
   resultDiv.style.opacity = '0';
   resultDiv.innerHTML = '';
 
@@ -91,7 +94,7 @@ function startJiggle() {
   setTimeout(() => {
     window.crca.stop(); flash.remove();
 
-    const c = choices.length ? choices[randInt(0,choices.length-1)] : {};
+    const c = choices.length ? choices[randInt(0, choices.length - 1)] : {};
     if (c.imageUrl) {
       const img = document.createElement('img');
       img.src = c.imageUrl;
@@ -104,13 +107,19 @@ function startJiggle() {
     resultDiv.style.opacity = '1';
     reloadBtn.style.display = 'block';
 
-    cooldownUntil = Date.now() + 1000;  // 1-s buffer
+    cooldownUntil = Date.now() + 1000;          // 1-s cooldown
     isRandomizing = false;
-    if (isMobile()) window.addEventListener('devicemotion', handleShake);
+
+    if (isMobile()) {
+      window.addEventListener('devicemotion', handleShake);
+    } else if (!isTablet()) {                   // desktop
+      mouseMoves = 0; lastMousePos = {x:null,y:null};
+      document.addEventListener('mousemove', mouseMove);
+    }
   }, 3000);
 }
 
-/* ───── shake detection ───── */
+/* ── mobile shake detection ──────────────────────────────────────────── */
 let lastShake = 0;
 function handleShake(e) {
   if (isRandomizing || Date.now() < cooldownUntil) return;
@@ -119,14 +128,41 @@ function handleShake(e) {
 
   const a = e.accelerationIncludingGravity;
   const force = Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z-9.81);
-  if (force > SHAKE) {
+  if (force > SHAKE_THR) {
     lastShake = now;
     window.removeEventListener('devicemotion', handleShake);
     startJiggle();
   }
 }
 
-/* ───── initial setup ───── */
+/* ── desktop mouse detection ─────────────────────────────────────────── */
+function mouseMove(e) {
+  if (isRandomizing || Date.now() < cooldownUntil) return;
+
+  if (lastMousePos.x === null) {
+    lastMousePos = { x: e.clientX, y: e.clientY };
+    return;
+  }
+  const dx = e.clientX - lastMousePos.x;
+  const dy = e.clientY - lastMousePos.y;
+  if (Math.hypot(dx, dy) < MOVE_THR) return;
+
+  const vec = { x: dx, y: dy };
+  if (lastMouseVec && (lastMouseVec.x * vec.x + lastMouseVec.y * vec.y) < 0) {
+    mouseMoves++;
+  }
+  lastMouseVec = vec;
+  lastMousePos = { x: e.clientX, y: e.clientY };
+  clearTimeout(mouseTimeout);
+  mouseTimeout = setTimeout(() => { mouseMoves = 0; }, RESET_TO);
+
+  if (mouseMoves >= REQ_MOVES) {
+    document.removeEventListener('mousemove', mouseMove);
+    startJiggle();
+  }
+}
+
+/* ── initial setup ───────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   jiggleSection.style.display = 'flex';
 
@@ -135,18 +171,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('devicemotion', handleShake);
   } else if (isTablet()) {
     jiggleHeading.textContent = 'Jiggle your tablet';
+    /* tablet shake listener optional */
   } else {
     jiggleHeading.textContent = 'Jiggle your mouse';
+    document.addEventListener('mousemove', mouseMove);
   }
 });
 
-/* ───── reload button ───── */
+/* ── reload button ───────────────────────────────────────────────────── */
 reloadBtn.addEventListener('click', () => {
   resultDiv.innerHTML = '';
   resultDiv.style.opacity = '0';
   reloadBtn.style.display = 'none';
   jiggleHeading.style.display = '';
-  if (isMobile()) window.addEventListener('devicemotion', handleShake);
+
+  if (isMobile()) {
+    window.addEventListener('devicemotion', handleShake);
+  } else if (!isTablet()) {
+    mouseMoves = 0; lastMousePos = { x:null, y:null };
+    document.addEventListener('mousemove', mouseMove);
+  }
 });
 
 
