@@ -278,13 +278,11 @@ canvas {
 
 @media (max-width: 600px) {
   #reload-index {
-    /* flow below the result element instead of absolute at bottom */
-    position: static !important;
-    display: block;           /* ensure margin applies */
-    margin: 20px auto 0;      /* 20px above, centered horizontally */
-    transform: none !important;
-    bottom: auto !important;
-    left: auto !important;
+    position: fixed;                           /* stick to viewport */
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;                               /* stay on top */
   }
 }
 
