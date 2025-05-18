@@ -276,6 +276,7 @@ canvas {
   #reload-index {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); /* sit 20 px above iOS safe-area */
     left: 50%;
+    bottom: 75px;
     transform: translateX(-50%);
   }
 }
