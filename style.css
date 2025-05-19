@@ -290,7 +290,7 @@ canvas {
 /* iPad portrait - raise reload button 10 px */
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1366px) {
   #reload-index {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 30px) !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 50px) !important;
   }
 }
 
