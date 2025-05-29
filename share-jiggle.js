@@ -14,7 +14,7 @@ let choices = [];
 if (key) {
   fetch(key)
     .then(r => r.json())
-    .then(d => { choices = d; })
+    .then(d => { choices = d.items || d; })
     .catch(() => alert('Could not load choices'));
 }
 
