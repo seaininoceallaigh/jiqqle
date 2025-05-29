@@ -17,6 +17,9 @@
   <!-- single button shown when loader finishes -->
   <div class="wrapper">
     <div id="action-state" style="display:none;flex-direction:column;align-items:center;z-index:10;">
+
+      <h2 id="list-title"></h2>
+
       <button id="jiqqle-button" class="action-btn">Take your chances</button>
     </div>
   </div>
@@ -83,6 +86,18 @@
 
   /* start animation */
   window.crca=new CirclesRandomColorAnimation(runLoader);
+
+
+
+/* show title */
+  fetch('test.json')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('list-title').textContent = data.title;
+    window.jiqqleItems = data.items;     // stash items if you need them later
+  })
+  .catch(console.error);
+
 
   /* ------------------------------------------------------------- *
    *            TAKE YOUR CHANCES → MOTION PERMISSION → NAV        *
