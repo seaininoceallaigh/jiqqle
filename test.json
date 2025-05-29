@@ -1,5 +1,8 @@
-[
-  {
+{
+  "title": "Johnny's Watch List",
+  "items": [
+
+    {
     "text": "King of Kong",
     "imageUrl": "https://m.media-amazon.com/images/M/MV5BM2RmNGM4YWItNDIzMS00OGQ5LTkyOGQtNTc1MGZkZTM0MDIwXkEyXkFqcGc@._V1_.jpg"
   },
@@ -24,4 +27,6 @@
     }
   
   
-]
+  ]
+
+}
