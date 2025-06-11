@@ -14,108 +14,135 @@
   <!-- opening animation -->
   <div class="loader-container"></div>
 
-  <!-- single button shown when loader finishes -->
+  <!-- main UI shown when loader finishes -->
   <div class="wrapper">
     <div id="action-state" style="display:none;flex-direction:column;align-items:center;z-index:10;">
-
       <h2 id="list-title"></h2>
-
       <button id="jiqqle-button" class="action-btn">Take your chances</button>
     </div>
   </div>
 
   <script>
-  /* ------------------------------------------------------------- *
-   *        CIRCLES BACKGROUND + WORD-SPRITE OPENING LOADER        *
-   * ------------------------------------------------------------- */
-  function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+  // UTIL
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 
-  function CirclesRandomColorAnimation(cb){
-    this.canvas=document.createElement('canvas');
-    const dpr=window.devicePixelRatio||1,w=innerWidth,h=innerHeight;
-    this.canvas.width=w*dpr; this.canvas.height=h*dpr;
-    Object.assign(this.canvas.style,{position:'fixed',top:0,left:0,width:`${w}px`,height:`${h}px`,zIndex:1});
-    document.body.insertBefore(this.canvas,document.body.firstChild);
-    const ctx=this.canvas.getContext('2d'); ctx.scale(dpr,dpr); ctx.fillStyle='black'; ctx.fillRect(0,0,w,h);
+  // LOADER ANIMATION
+  function CirclesRandomColorAnimation(onReady) {
+    this.canvas = document.createElement('canvas');
+    const dpr = window.devicePixelRatio || 1;
+    const w = innerWidth, h = innerHeight;
+    this.canvas.width  = w * dpr;
+    this.canvas.height = h * dpr;
+    Object.assign(this.canvas.style, {
+      position: 'fixed',
+      top: 0, left: 0,
+      width: `${w}px`,
+      height: `${h}px`,
+      zIndex: 1
+    });
+    document.body.insertBefore(this.canvas, document.body.firstChild);
 
-    let start=null,last=0;
-    const draw=(ts)=>{
-      if(!start) start=ts;
-      if(!this.triggered && ts-start>=1000){ this.triggered=!0; cb&&cb(); }
-      if(ts-last>100){
-        last=ts;
-        ctx.fillStyle=`rgba(${randInt(0,255)},${randInt(0,255)},${randInt(0,255)},${randInt(0,255)/255})`;
+    const ctx = this.canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, w, h);
+
+    let start = null, last = 0;
+    const draw = ts => {
+      if (!start) start = ts;
+      if (!this.triggered && ts - start >= 1000) {
+        this.triggered = true;
+        onReady && onReady();
+      }
+      if (ts - last > 100) {
+        last = ts;
+        ctx.fillStyle = `rgba(${randInt(0,255)},${randInt(0,255)},${randInt(0,255)},${(randInt(0,255)/255)})`;
         ctx.beginPath();
-        ctx.arc(randInt(0,w),randInt(0,h),randInt(10,100),0,2*Math.PI);
+        ctx.arc(randInt(0,w), randInt(0,h), randInt(10,100), 0, 2*Math.PI);
         ctx.fill();
       }
-      this.raf=requestAnimationFrame(draw);
+      this.raf = requestAnimationFrame(draw);
     };
-    this.raf=requestAnimationFrame(draw);
-    this.stop=()=>cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame(draw);
+    this.stop = () => cancelAnimationFrame(this.raf);
   }
 
-  const loader  = document.querySelector('.loader-container');
-  const words1  = ["Don't","know","what","to","do?"];
-  const words2  = ["Let","the","Universe","decide"];
+  const loader = document.querySelector('.loader-container');
+  const words1 = ["Don't","know","what","to","do?"];
+  const words2 = ["Let","the","Universe","decide"];
 
-  function showWords(arr){
-    loader.innerHTML='';
-    arr.forEach(w=>{
-      const s=document.createElement('span');
-      s.className='loading';
-      s.style.transform=`translate(${randInt(-100,100)}px,${randInt(-100,100)}px)`;
-      s.style.opacity=0; s.textContent=w; loader.appendChild(s);
+  function showWords(arr) {
+    loader.innerHTML = '';
+    arr.forEach(w => {
+      const span = document.createElement('span');
+      span.className = 'loading';
+      span.style.transform = `translate(${randInt(-100,100)}px,${randInt(-100,100)}px)`;
+      span.style.opacity = 0;
+      span.textContent = w;
+      loader.appendChild(span);
     });
-    // snap into place
-    requestAnimationFrame(()=>loader.querySelectorAll('.loading').forEach(el=>{
-      el.style.transform='translate(0,0)'; el.style.opacity=1;
-    }));
+    requestAnimationFrame(() => {
+      loader.querySelectorAll('.loading').forEach(el => {
+        el.style.transform = 'translate(0,0)';
+        el.style.opacity = 1;
+      });
+    });
   }
 
-  function runLoader(){
-    loader.style.display='block';
+  function runLoader() {
+    loader.style.display = 'block';
     showWords(words1);
-    setTimeout(()=>showWords(words2),2000);
-    setTimeout(()=>{
-      loader.style.display='none';
+    setTimeout(() => showWords(words2), 2000);
+    setTimeout(() => {
+      loader.style.display = 'none';
       window.crca.stop();
-      document.getElementById('action-state').style.display='flex';
-    },4000);
+      document.getElementById('action-state').style.display = 'flex';
+    }, 4000);
   }
 
-  /* start animation */
-  window.crca=new CirclesRandomColorAnimation(runLoader);
+  // start loader
+  window.crca = new CirclesRandomColorAnimation(runLoader);
 
 
+  // DYNAMIC JSON FETCH
+  const params   = new URLSearchParams(location.search);
+  const fileName = params.get('key') || 'test.json';
 
-/* show title */
-  fetch('test.json')
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById('list-title').textContent = data.title;
-    window.jiqqleItems = data.items;     // stash items if you need them later
-  })
-  .catch(console.error);
+  fetch(fileName)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById('list-title').textContent = data.title;
+      window.jiqqleItems = data.items;
+    })
+    .catch(err => {
+      console.error('Failed to load JSON:', err);
+      document.getElementById('list-title').textContent = '😞 Could not load list';
+    });
 
 
-  /* ------------------------------------------------------------- *
-   *            TAKE YOUR CHANCES → MOTION PERMISSION → NAV        *
-   * ------------------------------------------------------------- */
-  document.getElementById('jiqqle-button').addEventListener('click',()=>{
-    /* grab snapshot for jiggle screen */
-    if(window.crca && window.crca.canvas){
-      try{ localStorage.setItem('backgroundSnapshot', window.crca.canvas.toDataURL('image/png')); }catch(e){}
+  // BUTTON → MOTION PERMISSION → NAV
+  document.getElementById('jiqqle-button').addEventListener('click', () => {
+    if (window.crca && window.crca.canvas) {
+      try {
+        localStorage.setItem('backgroundSnapshot', window.crca.canvas.toDataURL('image/png'));
+      } catch(e) {}
     }
 
-    const nav=()=>{ window.location.href='share-jiggle.html'+(location.search||''); };
+    const nav = () => {
+      window.location.href = 'share-jiggle.html' + location.search;
+    };
 
-    if(typeof DeviceMotionEvent!=='undefined' &&
-       typeof DeviceMotionEvent.requestPermission==='function'){
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission()
-        .then(st=> st==='granted' ? nav() : alert('Motion access required to jiggle.'))
-        .catch(()=>alert('Could not request motion access.'));
-    }else{
+        .then(status => status === 'granted' ? nav() : alert('Motion access required.'))
+        .catch(() => alert('Could not request motion access.'));
+    } else {
       nav();
     }
   });
