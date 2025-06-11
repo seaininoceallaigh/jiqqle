@@ -1,11 +1,14 @@
 {
-  "title": "Cyan's Choices",
+  "title": "Cyan's Choices test",
   "items": [
     { "text": "Thank Michael" },
     { "text": "Open boxes" },
-    { "text": "Turntable" },
     { "text": "Read Game Book" },
     { "text": "1 hr Magic Tollbooth" },
-    { "text": "Clean desk" }
+    { "text": "Clean desk" },
+    {
+        "text": "Turntable",
+        "imageUrl": "https://jiqqle.s3.us-east-1.amazonaws.com/Screenshot+2025-06-11+at+4.12.13%E2%80%AFPM.png"
+      }
   ]
 }
